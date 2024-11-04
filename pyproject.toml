@@ -1,0 +1,132 @@
+[project]
+name = "evals"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [{ name = "Brett Calcott", email = "brett.calcott@gmail.com" }]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "httpx>=0.27.2",
+  "loguru>=0.7.2",
+  "pandas>=2.2.3",
+  "platformdirs>=4.3.6",
+  "plotly>=5.24.1",
+]
+
+[project.scripts]
+lmsys-down = "evals:lmsys.download"
+lmsys-extract = "evals:lmsys.extract"
+lmsys-clean = "evals:lmsys.clean"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# Pyright Settings ---------
+[tool.pyright]
+pythonVersion = "3.12"
+venvPath = "."
+venv = ".venv"
+include = ["src/**", "tests/**"]
+
+# RUFF Settings ------------
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+indent-width = 4
+exclude = [".git", "__pycache__"]
+
+[tool.ruff.lint]
+# https://docs.astral.sh/ruff/preview/
+preview = true
+
+# https://docs.astral.sh/ruff/settings/#lint_extend-safe-fixes
+extend-safe-fixes = [
+  "C419",    # unnecessary-comprehension-in-call
+  "PLR6201", # literal-membership
+  "EM101",   # assign exception
+  "EM102",   # assign exception
+  "W291",    # trailing-whitespace
+  "W293",    # blank line contains whitespace
+  "RUF022",  # unsorted-dunder-all
+  "D200",    # fits-on-one-line
+  "D301",    # escape-sequence-in-docstring
+  "D400",    # ends-in-period
+  "ANN204",  # missing-return-type-special-method 
+  "C420",    # unnecessary-dict-comprehension-for-iterable
+]
+
+# https://docs.astral.sh/ruff/preview/#using-rules-that-are-in-preview
+extend-select = [
+  "FURB",    # refurb
+  "PLC2801", # unnecessary-dunder-call
+  "PLR1733", # unnecessary-dict-index-lookup
+  "PLR1736", # unnecessary-list-index-lookup
+  "PLR6201", # literal-membership
+  "PLW1514", # unspecified-encoding
+]
+select = [
+  "B",       # flake8-bugbear
+  "C4",      # flake8-comprehensions
+  "E",       # pycodestyle-error
+  "EM",      # flake8-errmsg
+  "F",       # pyflakes
+  "FA",      # flake8-future-annotations
+  "FLY",     # flynt
+  "PIE",     # flake8-pytest-style
+  "PT",
+  "PTH",     # flake8-use-pathlib
+  "RUF",     # Ruff-specific rules
+  "SIM",     # flake8-simplify
+  "T20",     # print statements
+  "TCH",     # flake8-type-checking
+  "TID",     # flake8-tidy-imports
+  "UP",      # pyupgrade
+  "W",       # pycodestyle-warning
+  "PLC0208", # iteration-over-set
+  "PLR0402", # manual-from-import
+  "PLR1711", # useless-return
+  "PLR1714", # repeated-equality-comparison
+  "PLR5501", # collapsible-else-if
+  "PLW0120", # useless-else-on-loop
+  "PLW1510", # subprocess-run-without-check
+  "PLW3301", # nested-min-max
+  "D",       # pydocstyle
+  "D212",    # multi-line-summary-second-line
+  "NPY",     # numpy-specific-rules
+  "I001",    # unsorted-imports
+  "C901",    # complex-structure
+]
+ignore = [
+  "C408", # unnecessary dict call. dict(a=1) is sometimes clearer!
+  # pydocstyle/ https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
+  "D100",   # undocumented-public-module
+  "D101",   # undocumented-public-class
+  "D102",   # undocumented-public-method  
+  "D103",   # undocumented-public-function  
+  "D104",   # undocumented-public-package   
+  "D105",   # undocumented-magic-method 
+  "D106",   # undocumented-public-init  
+  "D107",
+  "D206",   # indent-with-spaces
+  "D213",   # multi-line-summary-first-line ((D212) is the opposite of this)
+  "ANN401", # Any as annotation
+]
+# https://docs.astral.sh/ruff/settings/#lintpydocstyle
+pydocstyle = { convention = "google" }
+mccabe = { max-complexity = 10 }
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
+
+[tool.ruff.lint.per-file-ignores]
+# Nothing yet
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "lf"
+# https://docs.astral.sh/ruff/formatter/#docstring-formatting
+docstring-code-format = true
+docstring-code-line-length = 88
