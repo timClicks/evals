@@ -34,15 +34,22 @@ fix:
 
 # Do all the things.
 all:
-  uv run lmsys-down
-  uv run lmsys-extract
+  uv run lmsys
+  uv run litellm
 
 # Clean up the project
+[confirm]
 clean: 
   uv run lmsys-clean
+
 
 # Check python version (How to run python scripts)
 pyversion:
   #!{{py_exe}}
   import sys
   print(sys.version)
+
+dbloc:
+  #!{{py_exe}}
+  from evals.settings import get_settings
+  print(f'"{get_settings().get_database_path()}"')

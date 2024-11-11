@@ -8,15 +8,18 @@ requires-python = ">=3.12,<3.13"
 dependencies = [
   "httpx>=0.27.2",
   "loguru>=0.7.2",
+  "matplotlib>=3.9.2",
   "pandas>=2.2.3",
   "platformdirs>=4.3.6",
   "plotly>=5.24.1",
+  "polars>=1.12.0",
+  "pydantic>=2.9.2",
+  "tortoise-orm>=0.21.7",
 ]
 
 [project.scripts]
-lmsys-down = "evals:lmsys.download"
-lmsys-extract = "evals:lmsys.extract"
-lmsys-clean = "evals:lmsys.clean"
+lmsys = "evals:lmsys.all"
+litellm = "evals:litellm.all"
 
 [build-system]
 requires = ["hatchling"]
@@ -100,17 +103,19 @@ select = [
 ignore = [
   "C408", # unnecessary dict call. dict(a=1) is sometimes clearer!
   # pydocstyle/ https://docs.astral.sh/ruff/formatter/#conflicting-lint-rules
-  "D100",   # undocumented-public-module
-  "D101",   # undocumented-public-class
-  "D102",   # undocumented-public-method  
-  "D103",   # undocumented-public-function  
-  "D104",   # undocumented-public-package   
-  "D105",   # undocumented-magic-method 
-  "D106",   # undocumented-public-init  
+  "D100",    # undocumented-public-module
+  "D101",    # undocumented-public-class
+  "D102",    # undocumented-public-method  
+  "D103",    # undocumented-public-function  
+  "D104",    # undocumented-public-package   
+  "D105",    # undocumented-magic-method 
+  "D106",    # undocumented-public-init  
   "D107",
-  "D206",   # indent-with-spaces
-  "D213",   # multi-line-summary-first-line ((D212) is the opposite of this)
-  "ANN401", # Any as annotation
+  "D206",    # indent-with-spaces
+  "D202",    # line after docs
+  "D213",    # multi-line-summary-first-line ((D212) is the opposite of this)
+  "ANN401",  # Any as annotation
+  "FURB140", # starmap is not clearer
 ]
 # https://docs.astral.sh/ruff/settings/#lintpydocstyle
 pydocstyle = { convention = "google" }
@@ -130,3 +135,6 @@ line-ending = "lf"
 # https://docs.astral.sh/ruff/formatter/#docstring-formatting
 docstring-code-format = true
 docstring-code-line-length = 88
+
+[dependency-groups]
+dev = ["jupyterlab>=4.3.0", "pytest>=8.3.3"]

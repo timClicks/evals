@@ -20,12 +20,12 @@ import asyncio
 import pickle
 import shutil
 from concurrent.futures import ProcessPoolExecutor
-from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
 
 import httpx
 import pandas as pd
+import polars as pl
 from loguru import logger
 
 from .settings import get_settings
@@ -64,7 +64,7 @@ async def download_date(date: str):
                     file.write(chunk)
 
 
-async def download_all():
+async def async_download():
     """Download data for all dates."""
     # Dates at https://huggingface.co/spaces/lmsys/chatbot-arena-leaderboard/tree/main
     dates = [
@@ -123,38 +123,33 @@ async def download_all():
             date += timedelta(days=1)
 
 
-def update_frame(df: pd.DataFrame | None, date: pd.Timestamp):
-    if df is None:
-        return
-
+def update_frame(df: pd.DataFrame, date: pd.Timestamp, kind: str) -> pd.DataFrame:
     df["date"] = date
+    df["kind"] = kind
     df["score"] = (df["rating"] - df["rating"].min()) / (
         df["rating"].max() - df["rating"].min()
     )
+    # This is missing in the early files and we don't need it.
+    if "final_ranking" in df.columns:
+        df = df.drop(columns=["final_ranking"])
+    return df
 
 
-@dataclass
-class Extract:
-    date: pd.Timestamp
-    full: pd.DataFrame = field(repr=False)
-    coding: pd.DataFrame | None = field(repr=False, default=None)
-    vision: pd.DataFrame | None = field(repr=False, default=None)
-
-    @classmethod
-    def from_data(
-        cls,
-        date: pd.Timestamp,
-        full: pd.DataFrame,
-        coding: pd.DataFrame | None = None,
-        vision: pd.DataFrame | None = None,
-    ):
-        update_frame(full, date)
-        update_frame(coding, date)
-        update_frame(vision, date)
-        return cls(date, full, coding, vision)
+def build_frame(
+    date: pd.Timestamp,
+    full: pd.DataFrame,
+    coding: pd.DataFrame | None,
+    vision: pd.DataFrame | None,
+) -> pd.DataFrame:
+    frames = [update_frame(full, date, "full")]
+    if coding is not None:
+        frames.append(update_frame(coding, date, "coding"))
+    if vision is not None:
+        frames.append(update_frame(vision, date, "vision"))
+    return pd.concat(frames)
 
 
-def build_extract(file_name: Path) -> Extract | None:
+def build_extract(file_name: Path) -> pd.DataFrame | None:
     """Load a pickle file and extract the leaderboard data frame.
 
     Both pandas and plotly are required to load the pickle files.
@@ -207,39 +202,41 @@ def build_extract(file_name: Path) -> Extract | None:
             msg = f"Keys of data in {file_name}: {list(data.keys())}"
             raise KeyError(msg)
 
-    return Extract.from_data(date, full, coding, vision)
-
-
-def extract_pickles():
-    """Iterate over all pickle files and get extracts."""
-    downloads_dir = get_settings().get_downloads_dir("lmsys")
-    paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
-    with ProcessPoolExecutor() as executor:
-        results = list(executor.map(build_extract, paths))
-
-    for extract in results:
-        if extract is None:
-            continue
-        logger.info(f"doing something with {extract!r}")
-
-    # fulls = pd.concat(fulls)
-    # fulls.to_csv(downloads_dir / "overall.csv", index_label="model")
-    #
-    # codings = pd.concat(codings)
-    # codings.to_csv(downloads_dir / "coding.csv", index_label="model")
-    #
-    # visions = pd.concat(visions) if len(visions) > 1 else visions[0]
-    # visions.to_csv(downloads_dir / "vision.csv", index_label="model")
+    return build_frame(date, full, coding, vision)
 
 
 def download():
-    asyncio.run(download_all())
+    asyncio.run(async_download())
 
 
-def extract():
-    extract_pickles()
+def assemble_frame() -> pl.DataFrame:
+    """Iterate over all pickle files and get extracts."""
+    settings = get_settings()
+    downloads_dir = settings.get_downloads_dir("lmsys")
+    paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
+
+    # Do this in parallel. It makes a big difference.
+    with ProcessPoolExecutor() as executor:
+        frames: list[pd.DataFrame] = [
+            r for r in executor.map(build_extract, paths) if r is not None
+        ]
+
+    df = pl.concat(
+        [pl.DataFrame(extract.reset_index(names=["model"])) for extract in frames]
+    )
+    return df
+
+
+def assemble():
+    df = assemble_frame()
+    df.write_parquet(get_settings().get_frames_dir() / "lmsys.parquet")
 
 
 def clean():
     download_dir = get_settings().get_downloads_dir("lmsys")
     shutil.rmtree(download_dir)
+
+
+def all():
+    download()
+    assemble()
