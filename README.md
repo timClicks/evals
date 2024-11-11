@@ -98,7 +98,6 @@ We are grateful for the support of the Astera Institute for this work.
 
 <p align="center"><a href="https://astera.org/"><img src="docs/images/astera.png" height="70"></img></a><p>
 
-[direnv-uv]: https://github.com/direnv/direnv/wiki/Python#uv
 [direnv]: https://direnv.net/
 [fastestai]: https://thefastest.ai/
 [just]: https://github.com/casey/just
@@ -106,3 +105,4 @@ We are grateful for the support of the Astera Institute for this work.
 [livebench]: https://livebench.ai/
 [lmsys]: https://lmsys.org/
 [uv]: https://docs.astral.sh/uv/
+[uv-direnv]: https://github.com/direnv/direnv/wiki/Python#uv
