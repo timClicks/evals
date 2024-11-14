@@ -302,6 +302,7 @@ dependencies = [
     { name = "platformdirs" },
     { name = "plotly" },
     { name = "polars" },
+    { name = "polars-strsim" },
     { name = "pydantic" },
     { name = "tortoise-orm" },
 ]
@@ -321,6 +322,7 @@ requires-dist = [
     { name = "platformdirs", specifier = ">=4.3.6" },
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "polars", specifier = ">=1.12.0" },
+    { name = "polars-strsim", specifier = ">=0.2.3" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "tortoise-orm", specifier = ">=0.21.7" },
 ]
@@ -1057,6 +1059,29 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/5a/3e/31257118e7e087fa27c230b8fadf8ff15d521140bf58558dc889ee0c9c5e/polars-1.12.0-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:afb03647b5160737d2119532ee8ffe825de1d19d87f81bbbb005131786f7d59b", size = 34126501 },
     { url = "https://files.pythonhosted.org/packages/ad/e6/d03053e6064d262f2ec41172a5092b08fc20d10c059dda6c9460371cfd7e/polars-1.12.0-cp39-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:ea96aba5eb3dab8f0e6abf05ab3fc2136b329261860ef8661d20f5456a2d78e0", size = 30479546 },
     { url = "https://files.pythonhosted.org/packages/d5/28/3d44ddf56a5c95272b202ce8aa0e9b818a1310e83525c4c29176b538ae7c/polars-1.12.0-cp39-abi3-win_amd64.whl", hash = "sha256:a228a4b320a36d03a9ec9dfe7241b6d80a2f119b2dceb1da953166655e4cf43c", size = 33790337 },
+]
+
+[[package]]
+name = "polars-strsim"
+version = "0.2.3"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "polars" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/cd/0a/2f7dac45cfebc9372faabd183f52f05a7b5349722666f492056d64bc8e1f/polars_strsim-0.2.3.tar.gz", hash = "sha256:3e92bc81c933867e3e812a7000a51bc830d78377e079e0fc98bb26ad022879e3", size = 31358 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/26/10dcc77881417ed1fb349b19785fc8cd041ae1d4c9fea0e493a45563cee6/polars_strsim-0.2.3-cp38-abi3-macosx_10_12_x86_64.whl", hash = "sha256:099b41cecdaa6bf70dc70bb1bc657303cfa7d84ad662da7acc06d0bc393ff88f", size = 3296707 },
+    { url = "https://files.pythonhosted.org/packages/22/fd/9c150b8efd43baa59d1cf602c8bde240bbf863f09f5502633b3caf49d5b3/polars_strsim-0.2.3-cp38-abi3-macosx_11_0_arm64.whl", hash = "sha256:1c12eefd99d0d6f31748a4d2d0fc787dd7e4f2a99c2a4bffd4f76a78baa829dc", size = 3124560 },
+    { url = "https://files.pythonhosted.org/packages/8a/f4/ac701f2dd822a4505e9ec04abb38ff69fa360ab3c8ea49112605532e6fb0/polars_strsim-0.2.3-cp38-abi3-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:f993301f9390bd80880622ba09bc6b53c81b495b7bd797e01481b63964da3de7", size = 3821788 },
+    { url = "https://files.pythonhosted.org/packages/72/e8/a76c3cd3c4a1e0b1b79cf9560ce1c039694b8ad97b21cdce278533b1ac5b/polars_strsim-0.2.3-cp38-abi3-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:ce09bd951b6302b1fa904cb5d22870dfcb4092b115501cadb6a0a94ae5c0ff1f", size = 3982552 },
+    { url = "https://files.pythonhosted.org/packages/6e/bd/c8fe9f8f9de7828eb9194d570d2288a5f3a3dfb1dae1b1ee1eae46db7026/polars_strsim-0.2.3-cp38-abi3-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:f05c6eaedc91ab657de84abc13796c3bf4e47ff304be10fb137db8db71fa9eb8", size = 4286243 },
+    { url = "https://files.pythonhosted.org/packages/22/3b/7b235b457075aa8ab63a251d33046301678f2af0040a1018c1659c5da941/polars_strsim-0.2.3-cp38-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a811fd2b169e2c4f732d087303d1038d84ba309f4debb7852f29f2487a3f8a7b", size = 3961747 },
+    { url = "https://files.pythonhosted.org/packages/a4/b4/8f8f25245d3669b11e2615e5ba1496675d3e798bc61e0b54506ae4fa3db6/polars_strsim-0.2.3-cp38-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:dbb5afea1d06e8934d579e53deda6e883a59d28558336a339090bda50bf2022a", size = 3876065 },
+    { url = "https://files.pythonhosted.org/packages/e6/bc/dd7ae1edf72fbcbe261a39e19e29f1e3360addfe9e21bf18d09a6a9647d0/polars_strsim-0.2.3-cp38-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:bfcd90efdcb54016caa119ea8c651df27096f3b2f9a0fda0f2faa2b150861203", size = 4124209 },
+    { url = "https://files.pythonhosted.org/packages/27/13/b71b1f6af4d9dfc283dfafc881c8dcbb42e9706d77a63d91d2ba9bc18b85/polars_strsim-0.2.3-cp38-abi3-musllinux_1_2_i686.whl", hash = "sha256:f308588690b0a3bf4a4347d6ca7cdd4578f6ea6c290bd83572dcf89b06331853", size = 4182439 },
+    { url = "https://files.pythonhosted.org/packages/e3/29/3df8d42ba9269e99db76c309bf2c9da88b4bdc16b7239b594d725823f370/polars_strsim-0.2.3-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:22e7c8afed562f7461e5c2e31c35184f024dd730f4477c5f3325d7beb74b5d52", size = 4054099 },
+    { url = "https://files.pythonhosted.org/packages/23/3d/9d68fa5a272989d063f174c81f888a2e30886e55edba7c3209338a3aaa0f/polars_strsim-0.2.3-cp38-abi3-win32.whl", hash = "sha256:33e9e760558dde60296dba2893bf5001afa9b47bfc5bfddd081fb75a6d571401", size = 2892703 },
+    { url = "https://files.pythonhosted.org/packages/b2/56/e8ba294ed528a02bfaeecf83f8b732c3b230545f243d3b1b9044e72ef3f5/polars_strsim-0.2.3-cp38-abi3-win_amd64.whl", hash = "sha256:12364251d8584cf0a42faf03a78c2ae5dc19a23fba74674ce3275d9b3475a193", size = 3281660 },
 ]
 
 [[package]]

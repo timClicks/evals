@@ -4,8 +4,6 @@ from functools import cache
 from pathlib import Path
 from typing import ClassVar
 
-import platformdirs
-
 
 @dataclass
 class Settings:
@@ -15,20 +13,16 @@ class Settings:
 
     def get_base_dir(self) -> Path:
         """Allow for setting a custom base path."""
-        base_path = os.environ.get("EVALS_BASE_PATH")
-        if base_path is not None:
-            base_path = Path(base_path)
-            base_path.mkdir(parents=True, exist_ok=True)
-        else:
-            base_path = Path(
-                platformdirs.user_data_dir(appname=self.app_name, ensure_exists=True)
-            )
+        base_path = os.environ.get("EVALS_BASE_PATH", "./data")
+        base_path = Path(base_path)
+        base_path.mkdir(parents=True, exist_ok=True)
         return base_path
 
     def get_log_dir(self) -> Path:
-        return Path(
-            platformdirs.user_log_dir(appname=self.app_name, ensure_exists=True)
-        )
+        logs = self.get_base_dir() / "logs"
+        # return Path(
+        #     platformdirs.user_log_dir(appname=self.app_name, ensure_exists=True)
+        # )
 
     def get_downloads_dir(self, where: str | None = None) -> Path:
         pth = self.get_base_dir() / "downloads"

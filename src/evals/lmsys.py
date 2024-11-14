@@ -126,6 +126,8 @@ async def async_download():
 def update_frame(df: pd.DataFrame, date: pd.Timestamp, kind: str) -> pd.DataFrame:
     df["date"] = date
     df["kind"] = kind
+
+    # TODO: Move this out to a separate scoring function.
     df["score"] = (df["rating"] - df["rating"].min()) / (
         df["rating"].max() - df["rating"].min()
     )

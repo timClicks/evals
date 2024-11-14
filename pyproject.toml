@@ -12,6 +12,7 @@ dependencies = [
   "pandas>=2.2.3",
   "platformdirs>=4.3.6",
   "plotly>=5.24.1",
+  "polars-strsim>=0.2.3",
   "polars>=1.12.0",
   "pydantic>=2.9.2",
   "tortoise-orm>=0.21.7",
@@ -20,6 +21,8 @@ dependencies = [
 [project.scripts]
 lmsys = "evals:lmsys.all"
 litellm = "evals:litellm.all"
+thefastestai = "evals:thefastestai.download"
+assemble = "evals:thefastestai.assemble"
 
 [build-system]
 requires = ["hatchling"]
