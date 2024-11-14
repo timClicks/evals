@@ -12,8 +12,9 @@ from pydantic import BaseModel, Field, ValidationError
 
 from .settings import get_settings
 
+ORIGIN = "thefastestai"
 REGIONS = ["cdg", "iad", "sea"]
-BASE_URL = "https://storage.googleapis.com/thefastest-data/"
+BASE_URL = "https://storage.googleapis.com/thefastest-data"
 
 
 @dataclass(frozen=True)
@@ -114,7 +115,7 @@ class ResultDateRegion(BaseModel):
 
         return df.with_columns(
             [
-                pl.lit(self.time.date()).alias("date"),  # Drop time
+                pl.lit(self.time.date()).alias("date"),  # Drop time?
                 pl.lit(self.region).alias("region"),
             ]
         )
@@ -122,7 +123,7 @@ class ResultDateRegion(BaseModel):
 
 async def download_date(date: datetime):
     """Download files for a date (if not already present)."""
-    downloads_dir = get_settings().get_downloads_dir("thefastestai")
+    downloads_dir = get_settings().get_downloads_dir(ORIGIN)
 
     async with httpx.AsyncClient() as client:
         for region in REGIONS:
@@ -167,7 +168,7 @@ def download():
 
 def assemble_frame() -> pl.DataFrame:
     """Score models for all dates since start of dataset to the current date."""
-    downloads_dir = get_settings().get_downloads_dir("thefastestai")
+    downloads_dir = get_settings().get_downloads_dir(ORIGIN)
     frames: list[pl.DataFrame] = []
     for file in downloads_dir.glob("*.json"):
         try:
@@ -184,7 +185,7 @@ def assemble_frame() -> pl.DataFrame:
 
 def assemble():
     df = assemble_frame()
-    df.write_parquet(get_settings().get_frames_dir() / "lmsys.parquet")
+    df.write_parquet(get_settings().get_frames_dir() / f"{ORIGIN}.parquet")
 
 
 def all():

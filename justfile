@@ -36,6 +36,7 @@ fix:
 all:
   uv run lmsys
   uv run litellm
+  uv run thefastestai
 
 # Clean up the project
 [confirm]

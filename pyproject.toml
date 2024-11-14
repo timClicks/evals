@@ -21,8 +21,7 @@ dependencies = [
 [project.scripts]
 lmsys = "evals:lmsys.all"
 litellm = "evals:litellm.all"
-thefastestai = "evals:thefastestai.download"
-assemble = "evals:thefastestai.assemble"
+thefastestai = "evals:thefastestai.all"
 
 [build-system]
 requires = ["hatchling"]

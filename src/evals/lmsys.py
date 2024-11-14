@@ -52,7 +52,7 @@ async def download_date(date: str):
 
             url = BASE_URL.format(file_name=file_name)
             # Currently, requests are being redirected...
-            response = await client.get(url, follow_redirects=True)
+            response = await client.get(url, follow_redirects=True, timeout=10)
             if response.status_code == 404:
                 continue
 
