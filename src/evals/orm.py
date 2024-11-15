@@ -1,7 +1,6 @@
 # Ignore Meta overrides for Tortoise models
 # pyright: reportIncompatibleVariableOverride=false
 
-from enum import StrEnum, auto
 from pathlib import Path
 
 from tortoise import Tortoise, fields
@@ -32,49 +31,68 @@ class Database:
         await close_connection()
 
 
-class Category(StrEnum):
-    Code = auto()
-    Text = auto()
-    All = auto()
-
-
-class Provider(StrEnum):
-    Aider = auto()
-    LmSys = auto()
-
-
-class LLM(Model):
-    pass
-
-
-class Quality(Model):
-    """Records of LLM quality."""
-
+class Prompt(Model):
     id = fields.IntField(pk=True)
+    created_by = fields.CharField(max_length=255)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    modified_at = fields.DatetimeField(auto_now=True)
+    type = fields.CharField(max_length=255)
+    name = fields.CharField(max_length=255)
 
-    # Provider of the metrics
-    provider = fields.CharEnumField(Provider)
-
-    # Name of the model
-    model = fields.TextField()
-    # model_version = fields.TextField()
-    # model_author = fields.TextField()
-
-    # Date metric was calculated
-    # when = fields.DateField()
-
-    # Category of quality
-    category = fields.CharEnumField(Category)
-
-    # additional info, model specific.
-    # subcategory = fields.TextField(null=True)
-
-    # Normalized values between 0 and 100
-    score = fields.FloatField()
-
-    # snapshot: fields.ForeignKeyRelation[LLMSnapshotRecord] = fields.ForeignKeyField(
-    #     "models.LLMSnapshotRecord", related_name="stats"
-    # )
+    # Reverse relations
+    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
 
     class Meta:
-        table = "quality"
+        table = "prompts"
+
+
+class Model(Model):
+    id = fields.IntField(pk=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    modified_at = fields.DatetimeField(auto_now=True)
+    provider = fields.CharField(max_length=255)
+    identifier = fields.CharField(max_length=255)
+    name = fields.CharField(max_length=255)
+    version = fields.CharField(max_length=255)
+
+    # Reverse relations
+    model_scores: fields.ReverseRelation["ModelScore"]
+    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
+
+    class Meta:
+        table = "models"
+
+
+class ModelScore(Model):
+    id = fields.IntField(pk=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    model = fields.ForeignKeyField("models.Model", related_name="model_scores")
+    overall_score = fields.FloatField()
+    cost_score = fields.FloatField()
+    speed_score = fields.FloatField()
+
+    class Meta:
+        table = "model_scores"
+
+
+class ModelPromptScore(Model):
+    id = fields.IntField(pk=True)
+    created_at = fields.DatetimeField(auto_now_add=True)
+    model = fields.ForeignKeyField("models.Model", related_name="model_prompt_scores")
+    prompt = fields.ForeignKeyField("models.Prompt", related_name="model_prompt_scores")
+    quality_score = fields.FloatField()
+
+    class Meta:
+        table = "model_prompt_scores"
+
+
+# Generate schemas
+async def init_db():
+    """Initialize database and create schemas"""
+    from tortoise import Tortoise
+
+    await Tortoise.init(
+        db_url="sqlite://db.sqlite3",  # Update this with your database URL
+        modules={"models": ["__main__"]},
+    )
+    await Tortoise.generate_schemas()
