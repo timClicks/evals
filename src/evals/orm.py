@@ -3,8 +3,12 @@
 
 from pathlib import Path
 
-from tortoise import Tortoise, fields
-from tortoise.models import Model
+import polars as pl
+from tortoise import Model, Tortoise, fields
+
+BASE_DIR = Path(__file__).parent.parent.parent
+MODEL_CSV = BASE_DIR / "tables" / "model.csv"
+PROMPT_CSV = BASE_DIR / "tables" / "prompt.csv"
 
 
 async def init_connection(db_url: str):
@@ -32,7 +36,7 @@ class Database:
 
 
 class Prompt(Model):
-    id = fields.IntField(pk=True)
+    id = fields.IntField(pk=True, generated=True)
     created_by = fields.CharField(max_length=255)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
@@ -46,7 +50,9 @@ class Prompt(Model):
         table = "prompts"
 
 
-class Model(Model):
+class LLM(Model):
+    """LLM model (We can't use Model!)."""
+
     id = fields.IntField(pk=True)
     created_at = fields.DatetimeField(auto_now_add=True)
     modified_at = fields.DatetimeField(auto_now=True)
@@ -66,10 +72,11 @@ class Model(Model):
 class ModelScore(Model):
     id = fields.IntField(pk=True)
     created_at = fields.DatetimeField(auto_now_add=True)
-    model = fields.ForeignKeyField("models.Model", related_name="model_scores")
-    overall_score = fields.FloatField()
-    cost_score = fields.FloatField()
-    speed_score = fields.FloatField()
+    model = fields.ForeignKeyField("models.LLM", related_name="model_scores")
+    # TODO: Do we need this
+    # overall_score = fields.FloatField()
+    cost_score = fields.SmallIntField()
+    speed_score = fields.SmallIntField()
 
     class Meta:
         table = "model_scores"
@@ -78,21 +85,24 @@ class ModelScore(Model):
 class ModelPromptScore(Model):
     id = fields.IntField(pk=True)
     created_at = fields.DatetimeField(auto_now_add=True)
-    model = fields.ForeignKeyField("models.Model", related_name="model_prompt_scores")
+    model = fields.ForeignKeyField("models.LLM", related_name="model_prompt_scores")
     prompt = fields.ForeignKeyField("models.Prompt", related_name="model_prompt_scores")
-    quality_score = fields.FloatField()
+    quality_score = fields.SmallIntField()
 
     class Meta:
         table = "model_prompt_scores"
 
 
 # Generate schemas
-async def init_db():
-    """Initialize database and create schemas"""
-    from tortoise import Tortoise
+async def load_tables(path: Path):
+    models_df = pl.read_csv(MODEL_CSV.resolve())
+    prompt_df = pl.read_csv(PROMPT_CSV.resolve())
 
-    await Tortoise.init(
-        db_url="sqlite://db.sqlite3",  # Update this with your database URL
-        modules={"models": ["__main__"]},
-    )
-    await Tortoise.generate_schemas()
+    async with Database(path):
+        for row_dict in models_df.iter_rows(named=True):
+            model = await LLM.create(**row_dict)
+            await model.save()
+
+        for row_dict in prompt_df.iter_rows(named=True):
+            prompt = await Prompt.create(**row_dict)
+            await prompt.save()

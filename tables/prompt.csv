@@ -1,23 +1,23 @@
-type,id,version,name
-Prompt,stencila/describe/block,0.1.0,Describe Block Prompt
-Prompt,stencila/edit/block,0.1.0,Edit Block Prompt
-Prompt,stencila/fix/block,0.1.0,Fix Block Prompt
-Prompt,stencila/create/code-chunk,0.1.0,Create Code Chunk Prompt
-Prompt,stencila/create/figure-caption,0.1.0,Create Figure Caption Prompt
-Prompt,stencila/create/figure-svg,0.1.0,Create SVG Figure Prompt
-Prompt,stencila/create/figure-flowchart,0.1.0,Create Flowchart Figure Prompt
-Prompt,stencila/create/figure-timeline,0.1.0,Create Timeline Figure Prompt
-Prompt,stencila/create/list-unordered,0.1.0,Create Unordered List Prompt
-Prompt,stencila/create/figure-code,0.1.0,Create Code Generated Figure Prompt
-Prompt,stencila/create/math-block,0.1.0,Create Math Block Prompt
-Prompt,stencila/create/table-caption,0.1.0,Create Table Caption Prompt
-Prompt,stencila/create/figure-dot,0.1.0,Create Graphviz DOT Figure Prompt
-Prompt,stencila/create/figure-sequence,0.1.0,Create Sequence Diagram Figure Prompt
-Prompt,stencila/create/figure-mermaid,0.1.0,Create Mermaid Figure Prompt
-Prompt,stencila/create/paragraph,0.1.0,Create Paragraph Prompt
-Prompt,stencila/create/blocks,0.1.1,Create Blocks Prompt
-Prompt,stencila/create/table-empty,0.1.0,Create Empty Table Prompt
-Prompt,stencila/create/table-code,0.1.0,Create Code Generated Table Prompt
-Prompt,stencila/create/list-ordered,0.1.0,Create Ordered List Prompt
-Prompt,stencila/create/quote-block,0.1.0,Create Quote Block Prompt
-Prompt,stencila/create/table-filled,0.1.0,Create Filled Table Prompt
+type,name,version,created_by
+Describe,stencila/describe/block,0.1.0,stencila
+Edit,stencila/edit/block,0.1.0,stencila
+Fix,stencila/fix/block,0.1.0,stencila
+Create,stencila/create/code-chunk,0.1.0,stencila
+Create,stencila/create/figure-caption,0.1.0,stencila
+Create,stencila/create/figure-svg,0.1.0,stencila
+Create,stencila/create/figure-flowchart,0.1.0,stencila
+Create,stencila/create/figure-timeline,0.1.0,stencila
+Create,stencila/create/list-unordered,0.1.0,stencila
+Create,stencila/create/figure-code,0.1.0,stencila
+Create,stencila/create/math-block,0.1.0,stencila
+Create,stencila/create/table-caption,0.1.0,stencila
+Create,stencila/create/figure-dot,0.1.0,stencila
+Create,stencila/create/figure-sequence,0.1.0,stencila
+Create,stencila/create/figure-mermaid,0.1.0,stencila
+Create,stencila/create/paragraph,0.1.0,stencila
+Create,stencila/create/blocks,0.1.1,stencila
+Create,stencila/create/table-empty,0.1.0,stencila
+Create,stencila/create/table-code,0.1.0,stencila
+Create,stencila/create/list-ordered,0.1.0,stencila
+Create,stencila/create/quote-block,0.1.0,stencila
+Create,stencila/create/table-filled,0.1.0,stencila

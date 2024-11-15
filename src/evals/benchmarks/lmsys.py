@@ -28,7 +28,7 @@ import pandas as pd
 import polars as pl
 from loguru import logger
 
-from .settings import get_settings
+from evals.settings import get_settings
 
 BASE_URL = (
     "https://huggingface.co/"

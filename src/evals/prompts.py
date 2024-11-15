@@ -1,4 +1,4 @@
-"""Grab the YAML headers from all the SMD Prompts."""
+r"""Grab the YAML headers from all the SMD Prompts."""
 
 import argparse
 import csv
@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 from loguru import logger
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, Field, ValidationError
 from ruamel.yaml import YAML
 
 TABLES_DIR = Path(__file__).parent.parent.parent / "tables"
@@ -17,10 +17,27 @@ HEADER_PATTERN = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 
 
 class YAMLHeader(BaseModel):
-    type: str
-    id: str
+    r"""Model for the YAML headers in the SMD files.
+
+    They look like this:
+    ---
+    type: Prompt
+    id: stencila/create/paragraph
+    version: "0.1.0"
+    name: Create Paragraph Prompt
+    description: Create a paragraph.
+    keywords: paragraph
+    instruction-type: Create
+    instruction-pattern: (?i)\b(para(graph)?)\b
+    node-type: Paragraph
+    ---
+
+    """
+
+    type: str = Field(alias="instruction-type")
+    name: str = Field(alias="id")
     version: str
-    name: str
+    created_by: str = "stencila"
     # description: str = ""
     # keywords: str
     # instruction_type: str = Field(..., alias="instruction-type")

@@ -12,7 +12,7 @@ import polars as pl
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
-from .settings import get_settings
+from evals.settings import get_settings
 
 # The relative weight to give to input tokens
 # for overall scored price. Needs to be determined

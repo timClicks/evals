@@ -9,7 +9,7 @@ import polars as pl
 import yaml
 from loguru import logger
 
-from .settings import get_settings
+from evals.settings import get_settings
 
 BASE_URL = "https://raw.githubusercontent.com/Aider-AI/aider/main/aider/website/_data/"
 EDIT_URL = BASE_URL + "edit_leaderboard.yml"
