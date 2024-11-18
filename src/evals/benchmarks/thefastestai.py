@@ -10,7 +10,7 @@ import polars as pl
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
-from .settings import get_settings
+from evals.settings import get_settings
 
 ORIGIN = "thefastestai"
 REGIONS = ["cdg", "iad", "sea"]

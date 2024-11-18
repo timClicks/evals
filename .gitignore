@@ -75,8 +75,9 @@ docs/_build/
 .pybuilder/
 target/
 
-# Jupyter Notebook
+# Jupyter Notebook (we don't want any test notebooks)
 .ipynb_checkpoints
+*.ipynb
 
 # IPython
 profile_default/
@@ -169,3 +170,6 @@ cython_debug/
 
 # pytest benchmark cache
 .benchmarks/
+
+# Ignore the default data folder
+data/
