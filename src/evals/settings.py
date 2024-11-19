@@ -20,6 +20,7 @@ class Settings:
 
     def get_log_dir(self) -> Path:
         logs = self.get_base_dir() / "logs"
+        return logs
         # return Path(
         #     platformdirs.user_log_dir(appname=self.app_name, ensure_exists=True)
         # )

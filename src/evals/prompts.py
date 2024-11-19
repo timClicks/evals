@@ -34,10 +34,11 @@ class YAMLHeader(BaseModel):
 
     """
 
-    type: str = Field(alias="instruction-type")
     name: str = Field(alias="id")
     version: str
-    created_by: str = "stencila"
+    category: str = "all"
+    # created_by: str = "stencila"
+    # type: str = Field(alias="instruction-type")
     # description: str = ""
     # keywords: str
     # instruction_type: str = Field(..., alias="instruction-type")

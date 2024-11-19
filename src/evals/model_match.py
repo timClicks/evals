@@ -1,5 +1,6 @@
 """Generate candidate matches between Stencila model names and other sources."""
 
+from collections import defaultdict
 from difflib import get_close_matches
 from pathlib import Path
 
@@ -8,7 +9,6 @@ import polars as pl
 from .settings import get_settings
 
 TABLES_DIR = Path(__file__).parent.parent.parent / "tables"
-MATCHES = 1
 CUTOFF = 0.6
 
 
@@ -22,31 +22,35 @@ def load_model_names() -> dict[str, set[str]]:
     return names
 
 
-def load_stencila_names() -> set[str]:
+def load_stencila_names() -> dict[str, str]:
     df = pl.read_csv(TABLES_DIR / "model.csv")
-    return set(df["identifier"].to_list()) - {"router"}
+    return dict(zip(df["stencila"].to_list(), df["use"].to_list(), strict=True))
 
 
-def match_models(from_set: set[str], to_set: set[str]) -> pl.DataFrame:
-    entries: list[tuple[str, ...]] = []
+def match_model(model: str, candidates: set[str]) -> str:
+    # * means identical
+    if model in candidates:
+        return "="
 
-    for item in from_set:
-        closest = get_close_matches(item, to_set, n=MATCHES, cutoff=CUTOFF)
-        while len(closest) < MATCHES:
-            closest.append("")
-        entries.append((item, *closest))
-
-    return pl.DataFrame(
-        entries,
-        schema=["stencila", "match"] + [f"maybe_{n + 1}" for n in range(MATCHES - 1)],
-        orient="row",
-    )
+    closest = get_close_matches(model, candidates, n=1, cutoff=CUTOFF)
+    if not closest:
+        return ""
+    return closest[0]
 
 
 def main():
+    """This keeps the first two columns and overwrites with best guesses."""
+
     model_names = load_model_names()
     stencila_names = load_stencila_names()
 
-    for source, names in model_names.items():
-        matches = match_models(stencila_names, names)
-        matches.write_csv(TABLES_DIR / f"{source}_candidate.csv")
+    dct: defaultdict[str, list[str]] = defaultdict(list)
+    for model, use in stencila_names.items():
+        dct["use"].append(use)
+        dct["stencila"].append(model)
+        for source, candidates in model_names.items():
+            best = match_model(model, candidates)
+            dct[source].append(best)
+
+    df = pl.DataFrame(dct)
+    df.write_csv(TABLES_DIR / "model.csv")

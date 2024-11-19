@@ -173,3 +173,4 @@ cython_debug/
 
 # Ignore the default data folder
 data/
+.aider*
