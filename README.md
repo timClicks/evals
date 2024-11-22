@@ -83,6 +83,25 @@ To run anything within the virtual environment, you need to use `uv run <command
 Alternatively, you can install [direnv], and have the virtual environment activated automatically.
 See here for more details about using [direnv and uv][uv-direnv] together.
 
+## 🏃Running the Code
+
+Overview of the current design of the code:
+
+- Code is fetched from the sources defined under the `src/evals/benchmarks` and save the raw data downloaded.
+- We then use pydantic classes to validate the incoming data and then save it to parquet data frames using `polars`.
+- The `tables` folder contains two tables (as CVS). A set of models with an `id`, and their mapping to the model names in the benchmarks we download. A `use` column lets us pick which models we use. The second table is a list of prompts, with an associated `category`.
+- We combine the downloaded parquet data frames with the models and prompts tables to generate lists of scores (validated by pydantic) and then save the results to another scoring data frame.
+
+Each of these stages can be run from the command line.
+To see the commands, look in the `pyproject.toml` under the section `[project.script]`. For example, to download the benchmarks, run:
+These commands are also invoked from the justfile (`just all`)
+
+### **Under development**
+
+- By default, all the data just gets saved under a `data` folder in the root of the project.
+- The scores are currently normalized to 0..1 (rather than 0-100)
+- There is no output to any sqlite database yet, thought there is a schema sketched in `src/evals/orm.py`.
+
 ## 🙏 Acknowledgements
 
 Thank you to the following projects whose code and/or data we rely on:
