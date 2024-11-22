@@ -41,7 +41,7 @@ class PromptRecord(Model):
     category = fields.TextField()
 
     # Reverse relations
-    # model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
+    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
 
     class Meta:
         table = "prompt"
@@ -55,7 +55,7 @@ class ModelRecord(Model):
 
     # Reverse relations
     model_scores: fields.ReverseRelation["ModelScoreRecord"]
-    # model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
+    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
 
     class Meta:
         table = "model"
@@ -71,12 +71,15 @@ class ModelScoreRecord(Model):
         table = "model_score"
 
 
-# class ModelPromptScore(Model):
-#     id = fields.IntField(pk=True)
-#     created_at = fields.DatetimeField(auto_now_add=True)
-#     model = fields.ForeignKeyField("models.LLM", related_name="model_prompt_scores")
-#     prompt = fields.ForeignKeyField("models.Prompt", related_name="model_prompt_scores")
-#     quality_score = fields.SmallIntField()
-#
-#     class Meta:
-#         table = "model_prompt_scores"
+class ModelPromptScore(Model):
+    id = fields.IntField(pk=True)
+    model = fields.ForeignKeyField(
+        "models.ModelRecord", related_name="model_prompt_scores"
+    )
+    prompt = fields.ForeignKeyField(
+        "models.PromptRecord", related_name="model_prompt_scores"
+    )
+    quality_score = fields.SmallIntField()
+
+    class Meta:
+        table = "model_prompt_scores"
