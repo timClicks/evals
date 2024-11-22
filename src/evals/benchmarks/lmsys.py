@@ -28,7 +28,11 @@ import pandas as pd
 import polars as pl
 from loguru import logger
 
+from evals.modelmap import ModelMapper
+from evals.scoring import BenchmarkResult, BenchmarkType, ModelScore
 from evals.settings import get_settings
+
+from ._benchmark import _Benchmark
 
 BASE_URL = (
     "https://huggingface.co/"
@@ -242,3 +246,20 @@ def clean():
 def all():
     download()
     assemble()
+
+
+class LmSys(_Benchmark):
+    def get_benchmarks(self, mm: ModelMapper) -> BenchmarkResult:
+        df = self.load_frame()
+
+        # Get the most recent data
+        max_date = df["date"].max()
+        df = df.filter(pl.col("date") == max_date)
+
+        # Filter for our models
+        df = self.map_and_filter_column(df, "model", mm)
+
+        # Rename the columns and add the kind we are.
+        df = df.rename({"kind": "context"})
+        scores = [ModelScore.model_validate(dct) for dct in df.iter_rows(named=True)]
+        return BenchmarkResult(bm_type=BenchmarkType.QUALITY, scores=scores)

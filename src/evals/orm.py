@@ -3,7 +3,6 @@
 
 from pathlib import Path
 
-import polars as pl
 from tortoise import Model, Tortoise, fields
 
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -35,74 +34,49 @@ class Database:
         await close_connection()
 
 
-class Prompt(Model):
+class PromptRecord(Model):
     id = fields.IntField(pk=True, generated=True)
-    created_by = fields.CharField(max_length=255)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    modified_at = fields.DatetimeField(auto_now=True)
-    type = fields.CharField(max_length=255)
-    name = fields.CharField(max_length=255)
+    name = fields.TextField()
+    version = fields.TextField()
+    category = fields.TextField()
 
     # Reverse relations
-    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
+    # model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
 
     class Meta:
-        table = "prompts"
+        table = "prompt"
 
 
-class LLM(Model):
+class ModelRecord(Model):
     """LLM model (We can't use Model!)."""
 
     id = fields.IntField(pk=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    modified_at = fields.DatetimeField(auto_now=True)
-    provider = fields.CharField(max_length=255)
-    identifier = fields.CharField(max_length=255)
-    name = fields.CharField(max_length=255)
-    version = fields.CharField(max_length=255)
+    name = fields.TextField()
 
     # Reverse relations
-    model_scores: fields.ReverseRelation["ModelScore"]
-    model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
+    model_scores: fields.ReverseRelation["ModelScoreRecord"]
+    # model_prompt_scores: fields.ReverseRelation["ModelPromptScore"]
 
     class Meta:
-        table = "models"
+        table = "model"
 
 
-class ModelScore(Model):
+class ModelScoreRecord(Model):
     id = fields.IntField(pk=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    model = fields.ForeignKeyField("models.LLM", related_name="model_scores")
-    # TODO: Do we need this
-    # overall_score = fields.FloatField()
-    cost_score = fields.SmallIntField()
-    speed_score = fields.SmallIntField()
+    model = fields.ForeignKeyField("models.ModelRecord", related_name="model_scores")
+    cost_score = fields.FloatField()
+    speed_score = fields.FloatField()
 
     class Meta:
-        table = "model_scores"
+        table = "model_score"
 
 
-class ModelPromptScore(Model):
-    id = fields.IntField(pk=True)
-    created_at = fields.DatetimeField(auto_now_add=True)
-    model = fields.ForeignKeyField("models.LLM", related_name="model_prompt_scores")
-    prompt = fields.ForeignKeyField("models.Prompt", related_name="model_prompt_scores")
-    quality_score = fields.SmallIntField()
-
-    class Meta:
-        table = "model_prompt_scores"
-
-
-# Generate schemas
-async def load_tables(path: Path):
-    models_df = pl.read_csv(MODEL_CSV.resolve())
-    prompt_df = pl.read_csv(PROMPT_CSV.resolve())
-
-    async with Database(path):
-        for row_dict in models_df.iter_rows(named=True):
-            model = await LLM.create(**row_dict)
-            await model.save()
-
-        for row_dict in prompt_df.iter_rows(named=True):
-            prompt = await Prompt.create(**row_dict)
-            await prompt.save()
+# class ModelPromptScore(Model):
+#     id = fields.IntField(pk=True)
+#     created_at = fields.DatetimeField(auto_now_add=True)
+#     model = fields.ForeignKeyField("models.LLM", related_name="model_prompt_scores")
+#     prompt = fields.ForeignKeyField("models.Prompt", related_name="model_prompt_scores")
+#     quality_score = fields.SmallIntField()
+#
+#     class Meta:
+#         table = "model_prompt_scores"

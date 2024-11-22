@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from evals.orm import LLM, Database, Prompt, load_tables
+from evals.orm import LLM, Database, PromptRecord, load_tables
 
 
 async def test_creation(tmp_path: Path):
@@ -9,7 +9,7 @@ async def test_creation(tmp_path: Path):
 
     # Check we have rows.
     async with Database(db_path):
-        ps = await Prompt.all()
+        ps = await PromptRecord.all()
         assert ps
         ms = await LLM.all()
         assert ms

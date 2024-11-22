@@ -12,7 +12,11 @@ import polars as pl
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
+from evals.modelmap import ModelMapper
+from evals.scoring import BenchmarkResult, BenchmarkType, ModelScore
 from evals.settings import get_settings
+
+from ._benchmark import _Benchmark
 
 # The relative weight to give to input tokens
 # for overall scored price. Needs to be determined
@@ -22,6 +26,8 @@ DATA_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/"
     "model_prices_and_context_window.json"
 )
+
+FRAME_PATH = get_settings().get_frames_dir() / "litellm.parquet"
 
 
 class LLMCaps(BaseModel):
@@ -155,9 +161,27 @@ def assemble_frame() -> pl.DataFrame:
 
 def assemble():
     df = assemble_frame()
-    df.write_parquet(get_settings().get_frames_dir() / "litellm.parquet")
+    df.write_parquet(FRAME_PATH)
 
 
 def all():
     download()
     assemble()
+
+
+class LiteLLM(_Benchmark):
+    def get_benchmarks(self, mm: ModelMapper) -> BenchmarkResult:
+        df = self.load_frame()
+
+        # Filter for our models
+        df = self.map_and_filter_column(df, "model", mm)
+
+        # Rename the columns and add the kind we are.
+        scores = [ModelScore.model_validate(dct) for dct in df.iter_rows(named=True)]
+        return BenchmarkResult(bm_type=BenchmarkType.COST, scores=scores)
+
+
+# def get_scores(models: list[str]) -> pl.DataFrame:
+#     """Get scores for a list of models."""
+#     df = assemble_frame()
+#     return df.filter(pl.col("model").isin(models))
