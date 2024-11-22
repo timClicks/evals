@@ -6,7 +6,7 @@ import polars as pl
 from pydantic import BaseModel
 
 from evals.modelmap import ModelMapper
-from evals.scoring import BenchmarkResult
+from evals.orm import BenchmarkResult
 from evals.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)

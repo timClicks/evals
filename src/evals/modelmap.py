@@ -54,7 +54,7 @@ class ModelMapper(BaseModel):
         return cls(models=set(columns[KEY_COLUMN]), mappings=mappings)
 
 
-# Here is some code for trying to match names.
+# BELOW is some code for trying to match names -----------------------------------
 # It can be used to kickstart some manual matching.
 def load_model_names() -> dict[str, set[str]]:
     frames_dir = get_settings().get_frames_dir()

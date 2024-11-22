@@ -28,10 +28,8 @@ lmsys = "evals.benchmarks:lmsys.all"
 litellm = "evals.benchmarks:litellm.all"
 thefastestai = "evals.benchmarks:thefastestai.all"
 prompts = "evals:prompts.main"
-build = "evals:scoring.main"
-mmatch = "evals:modelmap.main"
-routing = "evals:routing.main"
-
+scoring = "evals:scoring.main"
+modelmap = "evals:modelmap.main"
 
 [build-system]
 requires = ["hatchling"]

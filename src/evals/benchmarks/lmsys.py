@@ -18,7 +18,6 @@ https://chat.lmsys.org/?leaderboard.
 
 import asyncio
 import pickle
-import shutil
 from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -29,7 +28,7 @@ import polars as pl
 from loguru import logger
 
 from evals.modelmap import ModelMapper
-from evals.scoring import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
 from evals.settings import get_settings
 
 from ._benchmark import _Benchmark
@@ -236,11 +235,6 @@ def assemble_frame() -> pl.DataFrame:
 def assemble():
     df = assemble_frame()
     df.write_parquet(get_settings().get_frames_dir() / "lmsys.parquet")
-
-
-def clean():
-    download_dir = get_settings().get_downloads_dir("lmsys")
-    shutil.rmtree(download_dir)
 
 
 def all():

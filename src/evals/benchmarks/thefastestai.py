@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from evals.benchmarks._benchmark import _Benchmark
 from evals.modelmap import ModelMapper
-from evals.scoring import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
 from evals.settings import get_settings
 
 ORIGIN = "thefastestai"

@@ -33,24 +33,14 @@ fix:
   uv run ruff check --fix src tests
 
 # Do all the things.
-all:
+all: sync
   uv run lmsys
   uv run litellm
   uv run thefastestai
-
-# Clean up the project
-[confirm]
-clean: 
-  uv run lmsys-clean
-
+  uv run scoring 
 
 # Check python version (How to run python scripts)
 pyversion:
   #!{{py_exe}}
   import sys
   print(sys.version)
-
-dbloc:
-  #!{{py_exe}}
-  from evals.settings import get_settings
-  print(f'"{get_settings().get_database_path()}"')

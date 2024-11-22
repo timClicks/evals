@@ -13,7 +13,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
 
 from evals.modelmap import ModelMapper
-from evals.scoring import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
 from evals.settings import get_settings
 
 from ._benchmark import _Benchmark
