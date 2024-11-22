@@ -106,6 +106,7 @@ dependencies = [
     { name = "plotly" },
     { name = "polars" },
     { name = "polars-strsim" },
+    { name = "pyarrow" },
     { name = "pydantic" },
     { name = "ruamel-yaml" },
     { name = "tortoise-orm" },
@@ -129,6 +130,7 @@ requires-dist = [
     { name = "plotly", specifier = ">=5.24.1" },
     { name = "polars", specifier = ">=1.12.0" },
     { name = "polars-strsim", specifier = ">=0.2.3" },
+    { name = "pyarrow", specifier = ">=18.0.0" },
     { name = "pydantic", specifier = ">=2.9.2" },
     { name = "ruamel-yaml", specifier = ">=0.18.6" },
     { name = "tortoise-orm", specifier = ">=0.21.7" },
@@ -417,6 +419,21 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/e3/29/3df8d42ba9269e99db76c309bf2c9da88b4bdc16b7239b594d725823f370/polars_strsim-0.2.3-cp38-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:22e7c8afed562f7461e5c2e31c35184f024dd730f4477c5f3325d7beb74b5d52", size = 4054099 },
     { url = "https://files.pythonhosted.org/packages/23/3d/9d68fa5a272989d063f174c81f888a2e30886e55edba7c3209338a3aaa0f/polars_strsim-0.2.3-cp38-abi3-win32.whl", hash = "sha256:33e9e760558dde60296dba2893bf5001afa9b47bfc5bfddd081fb75a6d571401", size = 2892703 },
     { url = "https://files.pythonhosted.org/packages/b2/56/e8ba294ed528a02bfaeecf83f8b732c3b230545f243d3b1b9044e72ef3f5/polars_strsim-0.2.3-cp38-abi3-win_amd64.whl", hash = "sha256:12364251d8584cf0a42faf03a78c2ae5dc19a23fba74674ce3275d9b3475a193", size = 3281660 },
+]
+
+[[package]]
+name = "pyarrow"
+version = "18.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/ec/41/6bfd027410ba2cc35da4682394fdc4285dc345b1d99f7bd55e96255d0c7d/pyarrow-18.0.0.tar.gz", hash = "sha256:a6aa027b1a9d2970cf328ccd6dbe4a996bc13c39fd427f502782f5bdb9ca20f5", size = 1118457 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e4/ea/a7f77688e6c529723b37589af4db3e7179414e223878301907c5bd49d6bc/pyarrow-18.0.0-cp312-cp312-macosx_12_0_arm64.whl", hash = "sha256:e7ab04f272f98ebffd2a0661e4e126036f6936391ba2889ed2d44c5006237802", size = 29493113 },
+    { url = "https://files.pythonhosted.org/packages/79/8a/a3af902af623a1cf4f9d4d27d81e634caf1585a819b7530728a8147e391c/pyarrow-18.0.0-cp312-cp312-macosx_12_0_x86_64.whl", hash = "sha256:03f40b65a43be159d2f97fd64dc998f769d0995a50c00f07aab58b0b3da87e1f", size = 30833386 },
+    { url = "https://files.pythonhosted.org/packages/46/1e/f38b22e12e2ce9ee7c9d805ce234f68b23a0568b9a6bea223e3a99ca0068/pyarrow-18.0.0-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:be08af84808dff63a76860847c48ec0416928a7b3a17c2f49a072cac7c45efbd", size = 39170798 },
+    { url = "https://files.pythonhosted.org/packages/f8/fb/fd0ef3e0f03227ab183f8dc941f4ef59636d8c382e246954601dd29cf1b0/pyarrow-18.0.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:8c70c1965cde991b711a98448ccda3486f2a336457cf4ec4dca257a926e149c9", size = 40103326 },
+    { url = "https://files.pythonhosted.org/packages/7c/bd/5de139adba486db5ccc1b7ecab51e328a9dce354c82c6d26c2f642b178d3/pyarrow-18.0.0-cp312-cp312-manylinux_2_28_aarch64.whl", hash = "sha256:00178509f379415a3fcf855af020e3340254f990a8534294ec3cf674d6e255fd", size = 38583592 },
+    { url = "https://files.pythonhosted.org/packages/8d/1f/9bb3b3a644892d631dbbe99053cdb5295092d2696b4bcd3d21f29624c689/pyarrow-18.0.0-cp312-cp312-manylinux_2_28_x86_64.whl", hash = "sha256:a71ab0589a63a3e987beb2bc172e05f000a5c5be2636b4b263c44034e215b5d7", size = 40043128 },
+    { url = "https://files.pythonhosted.org/packages/74/39/323621402c2b1ce7ba600d03c81cf9645b862350d7c495f3fcef37850d1d/pyarrow-18.0.0-cp312-cp312-win_amd64.whl", hash = "sha256:fe92efcdbfa0bcf2fa602e466d7f2905500f33f09eb90bf0bcf2e6ca41b574c8", size = 25075300 },
 ]
 
 [[package]]

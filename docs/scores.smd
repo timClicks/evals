@@ -1,0 +1,23 @@
+```python exec
+import polars as pl
+df = pl.read_parquet("../data/routing/scoring.parquet")
+```
+
+::: create plot the polars dataframe using matplotlib >>>
+
+::::: figure
+
+Quality, cost and speed metrics from the routing evaluation, with each point representing a different model and category combination.
+
+```python exec
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.scatter(df['quality'], df['cost'], c=df['speed'], cmap='viridis')
+ax.set_xlabel('Quality Score')
+ax.set_ylabel('Cost Score')
+ax.grid(True, alpha=0.3)
+plt.colorbar(ax.collections[0], label='Speed Score')
+```
+
+:::::
