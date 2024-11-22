@@ -1,4 +1,4 @@
-use,stencila,lmsys,litellm,thefastestai
+use,id,lmsys,litellm,thefastestai
 ,mistral-small-2402,mistral-large-2402,mistral-small,""
 ,open-mistral-nemo-2407,mistral-large-2407,=,""
 ,codestral-mamba-2407,mistral-large-2407,codestral-2405,""

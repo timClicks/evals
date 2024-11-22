@@ -6,13 +6,13 @@ from pathlib import Path
 from typing import Self
 
 import polars as pl
-from loguru import logger
 from pydantic import BaseModel
 
 from .settings import get_settings
 
 TABLES_DIR = Path(__file__).parent.parent.parent / "tables"
 MODELS_PATH = TABLES_DIR / "model.csv"
+KEY_COLUMN = "id"
 
 
 class ModelMapper(BaseModel):
@@ -39,21 +39,19 @@ class ModelMapper(BaseModel):
             nm: series.to_list() for (nm, series) in df.to_dict().items()
         }
 
-        logger.info(f"Using the following models: {list(columns.keys())}")
-
         mappings = {}
         for nm in columns:
-            if nm == "stencila":
+            if nm == KEY_COLUMN:
                 continue
             bm_to_stencila = [
                 # We need to translate the '=' to the key.
                 (a if a != "=" else b, b)
-                for (a, b) in zip(columns[nm], columns["stencila"], strict=True)
+                for (a, b) in zip(columns[nm], columns[KEY_COLUMN], strict=True)
             ]
             mapping = dict(bm_to_stencila)
             mappings[nm] = mapping
 
-        return cls(models=set(columns["stencila"]), mappings=mappings)
+        return cls(models=set(columns[KEY_COLUMN]), mappings=mappings)
 
 
 # Here is some code for trying to match names.
@@ -70,7 +68,7 @@ def load_model_names() -> dict[str, set[str]]:
 
 def load_stencila_names() -> dict[str, str]:
     df = pl.read_csv(MODELS_PATH)
-    return dict(zip(df["stencila"].to_list(), df["use"].to_list(), strict=True))
+    return dict(zip(df[KEY_COLUMN].to_list(), df["use"].to_list(), strict=True))
 
 
 def match_model(model: str, candidates: set[str], cutoff: float) -> str:

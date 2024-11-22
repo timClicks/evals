@@ -1,4 +1,4 @@
-name,category
+id,category
 stencila/describe/block,*
 stencila/edit/block,*
 stencila/fix/block,*

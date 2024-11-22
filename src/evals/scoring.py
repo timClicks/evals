@@ -1,6 +1,13 @@
+import argparse
+import asyncio
 from enum import StrEnum
+from pathlib import Path
 
+import polars as pl
 from pydantic import BaseModel, Field
+
+from .modelmap import ModelMapper
+from .orm import PROMPT_CSV, Database, ModelRecord, PromptRecord
 
 
 class BenchmarkType(StrEnum):
@@ -34,34 +41,29 @@ class BenchmarkResult(BaseModel):
     scores: list[ModelScore]
 
 
-# async def assign_scores(path: Path):
-#     """Assign scores to models."""
-#
-#     # TODO: Actually assign scores. We're just filling the table for now.
-#     await load_tables(path)
-#
-#     async with Database(path):
-#         prompts = await Prompt.all()
-#         models = await LLM.all()
-#         for model in models:
-#             for prompt in prompts:
-#                 prompt_score = ModelPromptScore(
-#                     model=model, prompt=prompt, quality_score=150
-#                 )
-#                 await prompt_score.save()
-#             score = ModelScore(model=model, cost_score=50, speed_score=50)
-#             await score.save()
+# Generate schemas
+async def generate_scores(path: Path):
+    prompt_df = pl.read_csv(PROMPT_CSV.resolve())
+    mm = ModelMapper.load()
+
+    async with Database(path):
+        for row_dict in prompt_df.iter_rows(named=True):
+            prompt = PromptRecord(**row_dict)
+            await prompt.save()
+        for model in mm.models:
+            rec = ModelRecord(id=model)
+            await rec.save()
 
 
-# def main():
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("database", help="sqlite file to output")
-#     args = parser.parse_args()
-#     pth = Path(args.database)
-#     if pth.exists():
-#         pth.unlink()
-#     asyncio.run(assign_scores(pth))
-#
-#
-# if __name__ == "__main__":
-#     main()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("database", help="sqlite file to output")
+    args = parser.parse_args()
+    pth = Path(args.database)
+    if pth.exists():
+        pth.unlink()
+    asyncio.run(generate_scores(pth))
+
+
+if __name__ == "__main__":
+    main()

@@ -35,9 +35,7 @@ class Database:
 
 
 class PromptRecord(Model):
-    id = fields.IntField(pk=True, generated=True)
-    name = fields.TextField()
-    version = fields.TextField()
+    id = fields.TextField(pk=True)
     category = fields.TextField()
 
     # Reverse relations
@@ -48,10 +46,7 @@ class PromptRecord(Model):
 
 
 class ModelRecord(Model):
-    """LLM model (We can't use Model!)."""
-
-    id = fields.IntField(pk=True)
-    name = fields.TextField()
+    id = fields.TextField(pk=True)
 
     # Reverse relations
     model_scores: fields.ReverseRelation["ModelScoreRecord"]
