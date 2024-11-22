@@ -33,8 +33,15 @@ class Settings:
             pth.mkdir(parents=True)
         return pth
 
+    # TODO: Clean up this rubbish.
     def get_frames_dir(self) -> Path:
         pth = self.get_base_dir() / "frames"
+        if not pth.exists():
+            pth.mkdir(parents=True)
+        return pth
+
+    def get_routing_dir(self) -> Path:
+        pth = self.get_base_dir() / "routing"
         if not pth.exists():
             pth.mkdir(parents=True)
         return pth

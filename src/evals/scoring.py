@@ -1,13 +1,6 @@
-import argparse
-import asyncio
 from enum import StrEnum
-from pathlib import Path
 
-import polars as pl
 from pydantic import BaseModel, Field
-
-from .modelmap import ModelMapper
-from .orm import PROMPT_CSV, Database, ModelRecord, PromptRecord
 
 
 class BenchmarkType(StrEnum):
@@ -39,31 +32,3 @@ class BenchmarkResult(BaseModel):
 
     bm_type: BenchmarkType
     scores: list[ModelScore]
-
-
-# Generate schemas
-async def generate_scores(path: Path):
-    prompt_df = pl.read_csv(PROMPT_CSV.resolve())
-    mm = ModelMapper.load()
-
-    async with Database(path):
-        for row_dict in prompt_df.iter_rows(named=True):
-            prompt = PromptRecord(**row_dict)
-            await prompt.save()
-        for model in mm.models:
-            rec = ModelRecord(id=model)
-            await rec.save()
-
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument("database", help="sqlite file to output")
-    args = parser.parse_args()
-    pth = Path(args.database)
-    if pth.exists():
-        pth.unlink()
-    asyncio.run(generate_scores(pth))
-
-
-if __name__ == "__main__":
-    main()
