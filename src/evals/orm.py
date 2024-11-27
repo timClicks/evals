@@ -4,7 +4,7 @@
 from enum import StrEnum
 from pathlib import Path
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from tortoise import Model, Tortoise, fields
 
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -20,7 +20,7 @@ class BenchmarkType(StrEnum):
     QUALITY = "quality"
 
 
-class ModelScore(BaseModel):
+class Benchmark(BaseModel):
     """Model score."""
 
     # Model name. Must match the name in the model table.
@@ -32,15 +32,16 @@ class ModelScore(BaseModel):
     # - "*" is a catchall that indicates everything (all hosts or any category).
     context: str = "*"
 
-    # Normalized to 0-1
-    score: float = Field(ge=0.0, le=1.0)
+    # The score!
+    score: float
 
 
 class BenchmarkResult(BaseModel):
     """Benchmark result."""
 
     bm_type: BenchmarkType
-    scores: list[ModelScore]
+    unit: str
+    scores: list[Benchmark]
 
 
 async def init_connection(db_url: str):

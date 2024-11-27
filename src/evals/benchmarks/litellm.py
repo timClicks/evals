@@ -10,17 +10,16 @@ from typing import Any, Literal, Self
 import httpx
 import polars as pl
 from loguru import logger
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, Field, ValidationError, computed_field
 
 from evals.modelmap import ModelMapper
-from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import Benchmark, BenchmarkResult, BenchmarkType
 from evals.settings import get_settings
 
 from ._benchmark import _Benchmark
 
-# The relative weight to give to input tokens
-# for overall scored price. Needs to be determined
-# based on real data
+# The relative weight to give to input tokens for overall scored price.
+# TODO: Needs to be determined based on real data
 INPUT_WEIGHT = 0.75
 DATA_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/"
@@ -40,8 +39,15 @@ class LLMCaps(BaseModel):
     model: str = ""
 
     # These are the required fields (we shorten the names).
-    input: float = Field(alias="input_cost_per_token")
-    output: float = Field(alias="output_cost_per_token")
+    input_cpt: float = Field(alias="input_cost_per_token")
+    output_cpt: float = Field(alias="output_cost_per_token")
+
+    @computed_field
+    @property
+    def weighted_cpt(self) -> float:
+        return INPUT_WEIGHT * self.input_cpt + (1 - INPUT_WEIGHT) * self.output_cpt
+
+    # Provider or host
     provider: str = Field(alias="litellm_provider")
 
     # This is the only mode we accept for now.
@@ -66,6 +72,7 @@ class LLMCaps(BaseModel):
         dct["model"] = model
 
         # Pydantic will throw out anything that doesn't meet our demands above.
+        # Anything that is not "chat" mode, for example.
         try:
             slf = cls.model_validate(dct)
         except ValidationError:
@@ -134,32 +141,11 @@ def assemble_frame() -> pl.DataFrame:
     # Create a DataFrame with the models now we are sure the datatypes are correct.
     df = pl.DataFrame([item.model_dump() for item in models])
 
-    c_input, c_output = [pl.col(col) for col in "input output".split()]
-
-    # Column normalization function.
-    # This makes the smallest value => 1 and the largest value => 0.
-    def normalize(c: pl.Expr) -> pl.Expr:
-        return 1.0 - (c - c.min()) / (c.max() - c.min())
-
-    # Normalize columns first
-    df = df.with_columns(
-        [
-            normalize(c_input).alias("input_n"),
-            normalize(c_output).alias("output_n"),
-        ]
-    )
-
-    # Calculate the weighted score
-    df = df.with_columns(
-        (
-            INPUT_WEIGHT * pl.col("input_n") + (1 - INPUT_WEIGHT) * pl.col("output_n")
-        ).alias("score")
-    )
-
     return df
 
 
 def assemble():
+    logger.info(f"Writing LiteLLM data to parquet at {FRAME_PATH}")
     df = assemble_frame()
     df.write_parquet(FRAME_PATH)
 
@@ -176,9 +162,14 @@ class LiteLLM(_Benchmark):
         # Filter for our models
         df = self.map_and_filter_column(df, "model", mm)
 
+        df = df.rename(
+            {
+                "weighted_cpt": "score",
+            }
+        )
         # Rename the columns and add the kind we are.
-        scores = [ModelScore.model_validate(dct) for dct in df.iter_rows(named=True)]
-        return BenchmarkResult(bm_type=BenchmarkType.COST, scores=scores)
+        scores = [Benchmark.model_validate(dct) for dct in df.iter_rows(named=True)]
+        return BenchmarkResult(bm_type=BenchmarkType.COST, scores=scores, unit="cpt")
 
 
 # def get_scores(models: list[str]) -> pl.DataFrame:

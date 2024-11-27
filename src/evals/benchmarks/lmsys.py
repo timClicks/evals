@@ -28,7 +28,7 @@ import polars as pl
 from loguru import logger
 
 from evals.modelmap import ModelMapper
-from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import Benchmark, BenchmarkResult, BenchmarkType
 from evals.settings import get_settings
 
 from ._benchmark import _Benchmark
@@ -131,9 +131,9 @@ def update_frame(df: pd.DataFrame, date: pd.Timestamp, kind: str) -> pd.DataFram
     df["kind"] = kind
 
     # TODO: Move this out to a separate scoring function.
-    df["score"] = (df["rating"] - df["rating"].min()) / (
-        df["rating"].max() - df["rating"].min()
-    )
+    # df["score"] = (df["rating"] - df["rating"].min()) / (
+    #     df["rating"].max() - df["rating"].min()
+    # )
     # This is missing in the early files and we don't need it.
     if "final_ranking" in df.columns:
         df = df.drop(columns=["final_ranking"])
@@ -254,6 +254,13 @@ class LmSys(_Benchmark):
         df = self.map_and_filter_column(df, "model", mm)
 
         # Rename the columns and add the kind we are.
-        df = df.rename({"kind": "context"})
-        scores = [ModelScore.model_validate(dct) for dct in df.iter_rows(named=True)]
-        return BenchmarkResult(bm_type=BenchmarkType.QUALITY, scores=scores)
+        df = df.rename(
+            {
+                "kind": "context",
+                "rating": "score",
+            }
+        )
+        scores = [Benchmark.model_validate(dct) for dct in df.iter_rows(named=True)]
+        return BenchmarkResult(
+            bm_type=BenchmarkType.QUALITY, scores=scores, unit="cb_rating"
+        )

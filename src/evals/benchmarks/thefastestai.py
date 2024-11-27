@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field, ValidationError
 
 from evals.benchmarks._benchmark import _Benchmark
 from evals.modelmap import ModelMapper
-from evals.orm import BenchmarkResult, BenchmarkType, ModelScore
+from evals.orm import Benchmark, BenchmarkResult, BenchmarkType
 from evals.settings import get_settings
 
 ORIGIN = "thefastestai"
@@ -214,5 +214,5 @@ class TheFastestAI(_Benchmark):
             ]
         )
         df = df.rename({"tps": "score", "provider": "context"})
-        scores = [ModelScore.model_validate(dct) for dct in df.iter_rows(named=True)]
-        return BenchmarkResult(bm_type=BenchmarkType.SPEED, scores=scores)
+        scores = [Benchmark.model_validate(dct) for dct in df.iter_rows(named=True)]
+        return BenchmarkResult(bm_type=BenchmarkType.SPEED, scores=scores, unit="tps")
