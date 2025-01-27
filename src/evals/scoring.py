@@ -73,16 +73,22 @@ def generate_scores() -> ScoreRecordList:
     for quality_score in quality_scores:
         model = quality_score.model
         try:
+            quality = quality_score.score
             cost = cost_of_model[model]
             speed = speed_of_model[model]
         except LookupError:
             logger.warning(f"Skipping {model} due to missing cost or speed score.")
             continue
 
+        # scale scores from 0-1  to fit values within 0-100
+        quality *= 100.0
+        cost *= 100.0
+        speed *= 100.0
+
         score_records.append(
             ScoreRecord(
                 category=quality_score.context,
-                quality=quality_score.score,
+                quality=quality,
                 quality_unit=q_unit,
                 cost=cost,
                 cost_unit=c_unit,
