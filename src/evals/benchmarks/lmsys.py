@@ -217,17 +217,10 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
 def download():
     asyncio.run(async_download())
 
-def get_working_dir():
-    settings = get_settings()
-    downloads_dir = settings.get_downloads_dir("lmsys")
-    working_dir = settings.get_base_dir() / "working" / "lmsys"
-    working_dir.mkdir(parents=True, exist_ok=True)
-    return working_dir
-
 def extract():
     settings = get_settings()
     downloads_dir = settings.get_downloads_dir("lmsys")
-    working_dir = get_working_dir()
+    working_dir = settings.get_working_dir("lmsys")
 
     paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
     
@@ -249,7 +242,7 @@ def extract():
 def assemble_frame() -> pl.DataFrame:
     """Iterate over all pickle files and get extracts."""
     settings = get_settings()
-    working_dir = get_working_dir()
+    working_dir = settings.get_working_dir("lmsys")
 
     paths = sorted(working_dir.glob("elo_results_*.parquet"))
     scans = (pl.read_parquet(p) for p in paths)
