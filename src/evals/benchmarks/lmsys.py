@@ -18,9 +18,9 @@ https://chat.lmsys.org/?leaderboard.
 
 import asyncio
 import pickle
-from concurrent.futures import ProcessPoolExecutor
 from datetime import datetime, timedelta
 from pathlib import Path
+from multiprocessing import get_context
 
 import httpx
 import pandas as pd
@@ -207,38 +207,61 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
             msg = f"Keys of data in {file_name}: {list(data.keys())}"
             raise KeyError(msg)
 
-    return build_frame(date, full, coding, vision)
+    df = build_frame(date, full, coding, vision)
+    # in some (newer) .pkl files, this field is stored as a float
+    df = df.astype({"num_battles": "int64"})
+    df.reset_index(names=["model"], inplace=True)
+    return df
 
 
 def download():
     asyncio.run(async_download())
 
+def extract():
+    settings = get_settings()
+    downloads_dir = settings.get_downloads_dir("lmsys")
+    working_dir = settings.get_working_dir("lmsys")
+
+    paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
+    
+    tasks = []
+    for path in paths:
+        fname = path.with_suffix('.parquet').name
+        save_path = working_dir / fname
+        if save_path.exists():
+            # Skip if the source file is older than the saved file
+            save_is_newer = path.stat().st_mtime <= save_path.stat().st_mtime
+            if save_is_newer:
+                continue
+        tasks.append(path)
+    
+    # Using this API because of https://docs.pola.rs/user-guide/misc/multiprocessing/
+    with get_context("spawn").Pool() as pool:
+        pool.map(build_extract, tasks)
 
 def assemble_frame() -> pl.DataFrame:
     """Iterate over all pickle files and get extracts."""
     settings = get_settings()
-    downloads_dir = settings.get_downloads_dir("lmsys")
-    paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
+    working_dir = settings.get_working_dir("lmsys")
 
-    # Do this in parallel. It makes a big difference.
-    with ProcessPoolExecutor() as executor:
-        frames: list[pd.DataFrame] = [
-            r for r in executor.map(build_extract, paths) if r is not None
-        ]
-
-    df = pl.concat(
-        [pl.DataFrame(extract.reset_index(names=["model"])) for extract in frames]
-    )
+    paths = sorted(working_dir.glob("elo_results_*.parquet"))
+    scans = (pl.read_parquet(p) for p in paths)
+    df = pl.concat(scans)
+    
     return df
 
 
 def assemble():
+    save_path = get_settings().get_frames_dir() / "lmsys.parquet"
     df = assemble_frame()
-    df.write_parquet(get_settings().get_frames_dir() / "lmsys.parquet")
+    print(df)
+    df.write_parquet(save_path)
+    logger.info(f"lmsys data saved to {save_path}")
 
 
 def all():
     download()
+    extract()
     assemble()
 
 
