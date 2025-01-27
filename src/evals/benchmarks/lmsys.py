@@ -207,7 +207,10 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
             msg = f"Keys of data in {file_name}: {list(data.keys())}"
             raise KeyError(msg)
 
-    return build_frame(date, full, coding, vision)
+    df = build_frame(date, full, coding, vision)
+    # in some (newer) .pkl files, this field is stored as a float
+    df = df.astype({"num_battles": "int64"})
+    return df
 
 
 def download():
