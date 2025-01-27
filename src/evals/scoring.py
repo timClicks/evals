@@ -55,27 +55,34 @@ class ScoreRecordList(RootModel):
 def generate_scores() -> ScoreRecordList:
     mm = ModelMapper.load()
     results = [bm.get_benchmarks(mm) for bm in all_benchmarks().values()]
-    q_unit, q_scores = get_scores_like(results, BenchmarkType.QUALITY)
-    c_unit, c_scores = get_scores_like(results, BenchmarkType.COST)
-    s_unit, s_scores = get_scores_like(results, BenchmarkType.SPEED)
+    q_unit, quality_scores = get_scores_like(results, BenchmarkType.QUALITY)
+    c_unit, cost_scores = get_scores_like(results, BenchmarkType.COST)
+    s_unit, speed_scores = get_scores_like(results, BenchmarkType.SPEED)
+
+    cost_of_model = {}
+    for score in cost_scores:
+        cost_of_model[score.model] = score.score
+
+    speed_of_model = {}
+    for score in speed_scores:
+        speed_of_model[score.model] = score.score
 
     score_records = []
 
     # We lead with the quality scores, adding the cost and speed scores.
-    for q_score in q_scores:
-        model = q_score.model
-
-        # Attach the speed and cost.
-        cost = next((s.score for s in c_scores if s.model == model), None)
-        speed = next((s.score for s in s_scores if s.model == model), None)
-        if cost is None or speed is None:
+    for quality_score in quality_scores:
+        model = quality_score.model
+        try:
+            cost = cost_of_model[model]
+            speed = speed_of_model[model]
+        except LookupError:
             logger.warning(f"Skipping {model} due to missing cost or speed score.")
             continue
 
         score_records.append(
             ScoreRecord(
-                category=q_score.context,
-                quality=q_score.score,
+                category=quality_score.context,
+                quality=quality_score.score,
                 quality_unit=q_unit,
                 cost=cost,
                 cost_unit=c_unit,
