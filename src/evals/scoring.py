@@ -259,38 +259,12 @@ def symlink(original: Path):
     os.symlink(original.name, symlink_path)
 
 
-def save_csv(score_card: ScoreRecordList, location: Path):
-    records = score_card.root
-    headers = ScoreRecord.model_fields.keys()
-
-    with open(location, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=headers)
-        writer.writeheader()
-
-        for record in records:
-            writer.writerow(record.model_dump())
-
-
-def save_json(score_card: ScoreRecordList, destination: Path):
-    destination.write_text(score_card.model_dump_json(indent=2))
-
-
-def save_parquet(score_card: ScoreRecordList, destination: Path):
-    logger.info(f"Writing scoring frame to {destination}.")
-    df = pl.DataFrame(score_card.root)
-    df.write_parquet(destination)
-
-
 def main():
     """Write parquet and JSON files with scoring data."""
     st = get_settings()
     home = st.get_routing_dir()
 
     score_card = generate_scores()
-
-    print("score card")
-    print(score_card)
-
     df = pl.DataFrame(score_card.root)
     df = rank_by_category(df)
     df = calculate_geometric_means(df, ["quality_rank", "cost_rank", "speed_rank"])
@@ -299,17 +273,13 @@ def main():
     df.write_json(home / f"scoring-{today()}.json")
     df.write_parquet(home / f"scoring-{today()}.parquet")
 
-    # save_csv(score_card, home / f"scoring-{today()}.csv")
-    # save_json(score_card, home / f"scoring-{today()}.json")
-    # save_parquet(score_card, home / f"scoring-{today()}.parquet")
-
-    print("after writing")
-    print(df)
     # update "scoring.(csv|json|parquet)" to always point to the most recent version
     symlink(home / f"scoring-{today()}.csv")
     symlink(home / f"scoring-{today()}.json")
     symlink(home / f"scoring-{today()}.parquet")
 
+
+    print(df)
 
 if __name__ == "__main__":
     main()
