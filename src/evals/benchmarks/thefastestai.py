@@ -206,13 +206,7 @@ class TheFastestAI(_Benchmark):
 
         # Filter for our models
         df = self.map_and_filter_column(df, "model", mm)
-        df = df.group_by("model", "provider").agg(pl.col("tps").mean())
-        df = df.with_columns(
-            [
-                (pl.col("tps") - pl.col("tps").min())
-                / (pl.col("tps").max() - pl.col("tps").min())
-            ]
-        )
+        df = df.group_by("model", "provider").agg(pl.col("tps").median())
         df = df.rename({"tps": "score", "provider": "context"})
         scores = [Benchmark.model_validate(dct) for dct in df.iter_rows(named=True)]
         return BenchmarkResult(bm_type=BenchmarkType.SPEED, scores=scores, unit="tps")
