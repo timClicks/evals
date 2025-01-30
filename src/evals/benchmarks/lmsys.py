@@ -224,7 +224,6 @@ def extract():
 
     paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
     
-    tasks = []
     for path in paths:
         fname = path.with_suffix('.parquet').name
         save_path = working_dir / fname
@@ -233,11 +232,9 @@ def extract():
             save_is_newer = path.stat().st_mtime <= save_path.stat().st_mtime
             if save_is_newer:
                 continue
-        tasks.append(path)
-    
-    # Using this API because of https://docs.pola.rs/user-guide/misc/multiprocessing/
-    with get_context("spawn").Pool() as pool:
-        pool.map(build_extract, tasks)
+            df = build_extract(path)
+            if df is not None:
+                df.to_parquet(save_path)
 
 def assemble_frame() -> pl.DataFrame:
     """Iterate over all pickle files and get extracts."""
