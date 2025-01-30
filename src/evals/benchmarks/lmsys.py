@@ -21,6 +21,7 @@ import pickle
 from datetime import datetime, timedelta
 from pathlib import Path
 from multiprocessing import get_context
+from typing import List
 
 import httpx
 import pandas as pd
@@ -159,8 +160,13 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
 
     Both pandas and plotly are required to load the pickle files.
     """
+    logger.debug("processing", file_name)
     with file_name.open("rb") as file:
         data = pickle.load(file)
+    
+    import pprint
+    pprint.pprint(data)
+    raise RuntimeError
 
     logger.info(f"Extracting data from {file_name.name}")
     date = pd.to_datetime(file_name.name[-12:-4], format="%Y%m%d")
@@ -255,11 +261,34 @@ def assemble():
     df.write_parquet(save_path)
     logger.info(f"lmsys data saved to {save_path}")
 
+def extract_model_names():
+    import json
+    data_path = get_settings().get_frames_dir() / "lmsys.parquet"
+    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
+    df = pd.read_parquet(data_path)
+
+    try:
+        with open(model_names_path, "r") as fd:
+            all_model_names = json.load(fd)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        all_model_names = dict()
+
+    for model_id in df["model"].unique():
+        if model_id in all_model_names:
+            continue
+        logger.info(f"new model id to map - {model_id}")
+        all_model_names[model_id] = None
+
+    # TODO: fix race condition- leaving in for now because we process in serial
+    with model_names_path.open("w", newline="") as fd:
+        json.dump(all_model_names, fd, indent=2, sort_keys=True)
+
 
 def all():
-    download()
-    extract()
-    assemble()
+    # download()
+    # extract()
+    # assemble()
+    extract_model_names()
 
 
 class LmSys(_Benchmark):

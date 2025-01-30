@@ -186,14 +186,40 @@ def assemble_frame() -> pl.DataFrame:
     return df
 
 
+def extract_model_names():
+    import json
+    import pandas as pd
+    data_path = get_settings().get_frames_dir() / f"{ORIGIN}.parquet"
+    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
+    df = pd.read_parquet(data_path)
+
+    try:
+        with open(model_names_path, "r") as fd:
+            all_model_names = json.load(fd)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        all_model_names = dict()
+
+    for model_id in df["model"].unique():
+        if model_id in all_model_names:
+            continue
+        logger.info(f"new model id to map - {model_id}")
+        all_model_names[model_id] = None
+
+    # TODO: fix race condition- leaving in for now because we process in serial
+    with model_names_path.open("w", newline="") as fd:
+        json.dump(all_model_names, fd, indent=2, sort_keys=True)
+
+
+
 def assemble():
     df = assemble_frame()
     df.write_parquet(get_settings().get_frames_dir() / f"{ORIGIN}.parquet")
 
 
 def all():
-    download()
-    assemble()
+    # download()
+    # assemble()
+    extract_model_names()
 
 
 class TheFastestAI(_Benchmark):

@@ -123,9 +123,12 @@ async def async_download():
 def download():
     asyncio.run(async_download())
 
+def assemble_frame(extract_model_names=True) -> pl.DataFrame:
+    """
+    Extract input and output costs and derive a score for each model.
 
-def assemble_frame() -> pl.DataFrame:
-    """Extract input and output costs and derive a score for each model."""
+    When extract_model_names is True, also ensure that all model names are present in "data/working/model-names.json" and the corresponding csv file.
+    """
     file_path = get_file_path()
 
     # Read it in with JSON and filter out unwanted models
@@ -133,11 +136,11 @@ def assemble_frame() -> pl.DataFrame:
         data = json.load(fd)
 
     # Create models and filter out None.
-    models = [
-        created_model
-        for model, details in data.items()
-        if (created_model := LLMCaps.maybe_create(model, details)) is not None
-    ]
+    models = []
+    for model, details in data.items():
+        validated = LLMCaps.maybe_create(model, details)
+        if validated is not None:
+            models.append(validated)
 
     # Create a DataFrame with the models now we are sure the datatypes are correct.
     df = pl.DataFrame([item.model_dump() for item in models])
@@ -151,9 +154,33 @@ def assemble():
     df.write_parquet(FRAME_PATH)
 
 
+def extract_model_names():
+    import json
+    import pandas as pd
+
+    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
+    df = pd.read_parquet(FRAME_PATH)
+
+    try:
+        with open(model_names_path, "r") as fd:
+            all_model_names = json.load(fd)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        all_model_names = dict()
+
+    for model_id in df["model"].unique():
+        if model_id in all_model_names:
+            continue
+        logger.info(f"new model id to map - {model_id}")
+        all_model_names[model_id] = None
+
+    # TODO: fix race condition- leaving in for now because we process in serial
+    with model_names_path.open("w", newline="") as fd:
+        json.dump(all_model_names, fd, indent=2, sort_keys=True)
+
 def all():
-    download()
-    assemble()
+    # download()
+    # assemble()
+    extract_model_names()
 
 
 class LiteLLM(_Benchmark):
