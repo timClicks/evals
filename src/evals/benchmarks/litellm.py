@@ -5,6 +5,7 @@ https://github.com/BerriAI/litellm/blob/main/model_prices_and_context_window.jso
 
 import asyncio
 import json
+from decimal import Decimal
 from typing import Any, Literal, Self
 
 import httpx
@@ -20,7 +21,7 @@ from ._benchmark import _Benchmark
 
 # The relative weight to give to input tokens for overall scored price.
 # TODO: Needs to be determined based on real data
-INPUT_WEIGHT = 0.75
+INPUT_WEIGHT = Decimal.from_float(0.75)
 DATA_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/"
     "model_prices_and_context_window.json"
@@ -39,13 +40,13 @@ class LLMCaps(BaseModel):
     model: str = ""
 
     # These are the required fields (we shorten the names).
-    input_cpt: float = Field(alias="input_cost_per_token")
-    output_cpt: float = Field(alias="output_cost_per_token")
+    input_cpt: Decimal = Field(alias="input_cost_per_token")
+    output_cpt: Decimal = Field(alias="output_cost_per_token")
 
     @computed_field
     @property
-    def weighted_cpt(self) -> float:
-        return INPUT_WEIGHT * self.input_cpt + (1 - INPUT_WEIGHT) * self.output_cpt
+    def weighted_cpt(self) -> Decimal:
+        return INPUT_WEIGHT * self.input_cpt + (Decimal(1) - INPUT_WEIGHT) * self.output_cpt
 
     # Provider or host
     provider: str = Field(alias="litellm_provider")
