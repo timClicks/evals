@@ -168,6 +168,7 @@ def extract_model_names():
         all_model_names = dict()
 
     for model_id in df["model"].unique():
+        model_id = model_id + " [litellm] "
         if model_id in all_model_names:
             continue
         logger.info(f"new model id to map - {model_id}")
