@@ -164,10 +164,6 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
     with file_name.open("rb") as file:
         data = pickle.load(file)
     
-    import pprint
-    pprint.pprint(data)
-    raise RuntimeError
-
     logger.info(f"Extracting data from {file_name.name}")
     date = pd.to_datetime(file_name.name[-12:-4], format="%Y%m%d")
 
