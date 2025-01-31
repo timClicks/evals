@@ -260,7 +260,7 @@ def assemble():
 def extract_model_names():
     import json
     data_path = get_settings().get_frames_dir() / "lmsys.parquet"
-    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
+    model_names_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
     df = pd.read_parquet(data_path)
 
     try:

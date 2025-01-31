@@ -1,6 +1,8 @@
 """Speed metrics based on data collected by https://thefastest.ai."""
 
 import asyncio
+import json
+import pandas as pd
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Final
@@ -187,10 +189,8 @@ def assemble_frame() -> pl.DataFrame:
 
 
 def extract_model_names():
-    import json
-    import pandas as pd
     data_path = get_settings().get_frames_dir() / f"{ORIGIN}.parquet"
-    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
+    model_names_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
     df = pd.read_parquet(data_path)
 
     try:

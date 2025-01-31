@@ -1,5 +1,6 @@
 """Generate candidate matches between Stencila model names and other sources."""
 
+import json
 from collections import defaultdict
 from difflib import get_close_matches
 from pathlib import Path
@@ -50,6 +51,34 @@ class ModelMapper(BaseModel):
             ]
             mapping = dict(bm_to_stencila)
             mappings[nm] = mapping
+
+        # supplement CSV w/ 1:1 file
+        model_mapping_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
+
+        try:
+            with open(model_mapping_path, "r") as fd:
+                all_model_names = json.load(fd)
+        except (FileNotFoundError, json.decoder.JSONDecodeError):
+            all_model_names = dict()
+        
+        for model_id_with_source, stencila_model_id in all_model_names.items():
+            if stencila_model_id is None:
+                continue
+            try:
+                model_id, source = model_id_with_source.rsplit(' ', 1)
+            except ValueError as err:
+                print(model_id_with_source)
+                raise err
+            source = source.strip('[]')
+            if source == "lmarena":
+                source = "lmsys"
+            mappings[source][model_id] = stencila_model_id
+            mappings[source][model_id.lower()] = stencila_model_id
+
+            if source == "litellm":
+                model_id = model_id.split("/")[-1]
+                mappings[source][model_id] = stencila_model_id
+                mappings[source][model_id.lower()] = stencila_model_id
 
         return cls(models=set(columns[KEY_COLUMN]), mappings=mappings)
 

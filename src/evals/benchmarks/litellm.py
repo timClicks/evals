@@ -158,17 +158,28 @@ def extract_model_names():
     import json
     import pandas as pd
 
-    model_names_path = get_settings().get_base_dir() / "working" / "model-id-mapping.json"
-    df = pd.read_parquet(FRAME_PATH)
+    file_path = get_file_path()
+    model_names_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
 
+    # Read it in with JSON and filter out unwanted models
+    with file_path.open("r") as fd:
+        data = json.load(fd)
+
+    # retaining the provider's name is important for mapping their model ids to stencila's
+    model_ids = []
+    for model_id_with_provider, details in data.items():
+        validated = LLMCaps.maybe_create(model_id_with_provider, details)
+        if validated is not None:
+            model_ids.append(model_id_with_provider)
+    
     try:
         with open(model_names_path, "r") as fd:
             all_model_names = json.load(fd)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         all_model_names = dict()
 
-    for model_id in df["model"].unique():
-        model_id = model_id + " [litellm] "
+    for model_id in model_ids:
+        model_id = model_id + " [litellm]"
         if model_id in all_model_names:
             continue
         logger.info(f"new model id to map - {model_id}")
