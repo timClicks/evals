@@ -218,8 +218,8 @@ def assemble():
 
 
 def all():
-    # download()
-    # assemble()
+    download()
+    assemble()
     extract_model_names()
 
 

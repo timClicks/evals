@@ -286,9 +286,9 @@ def extract_model_names():
 
 
 def all():
-    # download()
-    # extract()
-    # assemble()
+    download()
+    extract()
+    assemble()
     extract_model_names()
 
 

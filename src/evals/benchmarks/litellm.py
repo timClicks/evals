@@ -179,8 +179,8 @@ def extract_model_names():
         json.dump(all_model_names, fd, indent=2, sort_keys=True)
 
 def all():
-    # download()
-    # assemble()
+    download()
+    assemble()
     extract_model_names()
 
 
