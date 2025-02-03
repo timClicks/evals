@@ -96,6 +96,7 @@
   "azure_ai/Phi-3.5-MoE-instruct [litellm]": "Phi-3.5-moe-instruct",
   "azure_ai/Phi-3.5-mini-instruct [litellm]": "Phi-3.5-mini-instruct",
   "azure_ai/Phi-3.5-vision-instruct [litellm]": "Phi-3.5-vision-instruct",
+  "azure_ai/deepseek-r1 [litellm]": "deepseek-r1",
   "azure_ai/jamba-instruct [litellm]": null,
   "azure_ai/ministral-3b [litellm]": null,
   "azure_ai/mistral-large [litellm]": null,
