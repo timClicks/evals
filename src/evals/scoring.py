@@ -8,15 +8,14 @@ Together these can be used to generate the ideal models, given a weighting.
 # TODO: for now, we ignore *hosts*, that a model can be hosted by one or more
 # platforms. We can add this later.
 
-from collections import defaultdict
-import csv
 import os
+from collections import defaultdict
+from collections.abc import Iterable
 from datetime import date
 from pathlib import Path
-from typing import Iterable, List
+from typing import List
 
 import numpy as np
-import pandas as pd
 import polars as pl
 from loguru import logger
 from pydantic import BaseModel, RootModel
@@ -51,20 +50,20 @@ class ScoreRecord(BaseModel):
     # TODO: We should use an enum here later.
     category: str
 
-    quality: float
-    quality_rank: None | int = None
-    quality_pct: None | float = None
+    quality: float | None
+    quality_rank: int | None = None
+    quality_pct: float | None = None
     quality_unit: str
 
-    cost: float
-    cost_rank: None | int = None
-    cost_pct: None | float = None
-    cost_unit: str
+    cost: float | None
+    cost_rank: int | None = None
+    cost_pct: float | None = None
+    cost_unit: str | None
 
-    speed: float
-    speed_rank: None | int = None
-    speed_pct: None | float = None
-    speed_unit: str
+    speed: float | None
+    speed_rank: int | None = None
+    speed_pct: float | None = None
+    speed_unit: str | None
 
 
 class ScoreRecordList(RootModel):
@@ -110,28 +109,43 @@ def calculate_geometric_means(df: pl.DataFrame, cols: Iterable[str]) -> pl.DataF
 
 
 def rank_by_category(df: pl.DataFrame) -> pl.DataFrame:
-    rank_qual = (
+    quality_ranked = (
         pl.col("quality")
         .rank(method="min", descending=True)
         .over("category")
         .alias("quality_rank")
     )
-    rank_cost = (
-        pl.col("cost")
-        .rank(method="min", descending=False)
-        .over("category")
-        .alias("cost_rank")
-    )
-    rank_speed = (
+
+    speed_ranked = (
         pl.col("speed")
         .rank(method="min", descending=True)
         .over("category")
         .alias("speed_rank")
     )
 
-    df = df.with_columns([rank_qual, rank_cost, rank_speed])
+    cost_ranked = (
+        pl.col("cost")
+        .rank(method="min", descending=True)
+        .over("category")
+        .alias("cost_rank")
+    )
+    df = df.with_columns([quality_ranked, speed_ranked, cost_ranked])
 
     return df
+
+def calculate_percentiles(scores: List[float], invert_scores = False) -> np.ndarray:
+    obs = np.array(scores)
+
+    # lower is better for cost
+    # TODO: check whether this is already done earlier
+    if invert_scores:
+        obs = 1.0 - obs
+
+    sorted_obs = np.sort(obs)
+    positions = np.searchsorted(sorted_obs, obs)
+    percentiles = positions / len(obs)
+    percentiles = percentiles * 100.0
+    return percentiles
 
 
 def generate_scores() -> ScoreRecordList:
@@ -142,102 +156,78 @@ def generate_scores() -> ScoreRecordList:
     s_unit, speed_scores = get_scores_like(results, BenchmarkType.SPEED)
 
     metrics = ["quality", "cost", "speed"]
-    # contexts = set() # ignore for now
-    model_names = set()
-    model_percentiles = defaultdict(dict)
+    contexts = set()
+    data_by_model = defaultdict(dict)
 
-    metric_observations = {
-        "quality": { "model": [], "score": [] },
-        "cost": { "model": [], "score": [] },
-        "speed": { "model": [], "score": [] },
-    }
-
-    quality_of_model = {}
     for score in quality_scores:
-        quality_of_model[score.model] = score.score
-        model_names.add(score.model)
-        metric_observations["quality"]["model"].append(score.model)
-        metric_observations["quality"]["score"].append(score.score)
+        contexts.add(score.context)
+        data_by_model[score.model][f"quality_{score.context}"] = score.score
 
-    cost_of_model = {}
     for score in cost_scores:
-        cost_of_model[score.model] = score.score
-        model_names.add(score.model)
-        metric_observations["cost"]["model"].append(score.model)
-        metric_observations["cost"]["score"].append(score.score)
+        # TODO: cost context
+        data_by_model[score.model]["cost"] = score.score
 
-    speed_of_model = {}
     for score in speed_scores:
-        speed_of_model[score.model] = score.score
-        model_names.add(score.model)
-        metric_observations["speed"]["model"].append(score.model)
-        metric_observations["speed"]["score"].append(score.score)
+        # TODO: speed context, e.g. hosting provider
+        data_by_model[score.model]["speed"] = score.score
 
-    for metric, scores in metric_observations.items():
-        model_names = scores["model"]
-        obs = np.array(scores["score"])
+    for metric in metrics:
+        for model_name, data in data_by_model.items():
+            model_names = []
+            scores = []
+            score = data.get(metric)
+            if score is None:
+                continue
+            scores.append(score)
+            model_names.append(model_name)
 
-        # lower is better for cost
-        # TODO: check whether this is already done earlier
-        if metric == "cost":
-            obs = 1.0 - obs
-        
-        sorted_obs = np.sort(obs)
-        positions = np.searchsorted(sorted_obs, obs)
-        percentiles = positions / len(obs)
+            invert_scores = metric == "cost"
+            percentiles = calculate_percentiles(scores, invert_scores)
 
-        stars = percentiles * 5.0 # Convert to 0-1 to 0-5 scale
-        stars = np.round(stars * 2) / 2 # Round to nearest 0.5
-
-        for (model, score, pct) in zip(model_names, obs, percentiles):
-            pct = pct * 100.0
-            model_percentiles[metric].update(**{model: pct})
+            for (model, pct) in zip(model_names, percentiles, strict=True):
+                data_by_model[model][f"{metric}_pct"] = pct
 
     score_records = []
-    
-    for model in model_names:
-        quality = quality_of_model.get(model)
-        cost = cost_of_model.get(model)
-        speed = speed_of_model.get(model)
+    for model, data in data_by_model.items():
+        for context in contexts:
+            quality = data.get(f"quality_{context}")
+            cost = data.get("cost")
+            speed = data.get("speed")
 
-    # We lead with the quality scores, adding the cost and speed scores.
-    for quality_score in quality_scores:
-        model = quality_score.model
+            missing = []
+            if quality is None:
+                missing.append("quality")
+            if cost is None:
+                missing.append("cost")
+            if speed is None:
+                missing.append("speed")
 
-        try:
-            quality = quality_score.score
-            cost = cost_of_model[model]
-            speed = speed_of_model[model]
-        except LookupError:
-            fields = ["quality", "cost", "speed"]
-            present = [ model in quality_of_model, model in cost_of_model, model in speed_of_model ]
-            missing = [field for (field, is_present) in zip(fields, present) if not is_present]
+            if len(missing) > 0:
+                part_1 = f"{model} is missing metric"
+                match len(missing):
+                    case 1: part_2 = f": {missing[0]}."
+                    case 2: part_2 = f"s: {missing[0]} and {missing[1]}."
+                    case _: part_2 = f"s: {(', ').join(missing[0:-1])} and {missing[-1]}."  # impossible?
+                logger.info(part_1 + part_2)
+                continue
 
-            match len(missing):
-                case 1: logger.info(f"Skipping {model}, missing: {missing[0]}.")
-                case 2: logger.info(f"Skipping {model}, missing: {missing[0]} and {missing[1]}.")
-                case _: logger.info(f"Skipping {model}, missing: {(', ').join(missing[0:-1])} and {missing[-1]}.")
-            
-            continue
-
-        score_records.append(
-            ScoreRecord(
-                category=quality_score.context,
-                quality=quality,
-                quality_unit=q_unit,
-                quality_pct=model_percentiles["quality"][model],
-                cost=cost,
-                cost_unit=c_unit,
-                cost_pct=model_percentiles["cost"][model],
-                speed=speed,
-                speed_unit=s_unit,
-                speed_pct=model_percentiles["speed"][model],
-                model=model,
+            score_records.append(
+                ScoreRecord(
+                    category=context,
+                    quality=quality,
+                    quality_unit=q_unit,
+                    quality_pct=data.get("quality_{context}_pct"),
+                    cost=cost,
+                    cost_unit=c_unit,
+                    cost_pct=data.get("cost_{context}_pct"),
+                    speed=speed,
+                    speed_unit=s_unit,
+                    speed_pct=data.get("speed_{context}_pct"),
+                    model=model,
+                )
             )
-        )
 
     return ScoreRecordList(root=score_records)
-
 
 # utility functions
 
@@ -278,8 +268,8 @@ def main():
     symlink(home / f"scoring-{today()}.json")
     symlink(home / f"scoring-{today()}.parquet")
 
-
     print(df)
+
 
 if __name__ == "__main__":
     main()
