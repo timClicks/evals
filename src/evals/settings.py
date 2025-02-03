@@ -17,17 +17,15 @@ class Settings:
         base_path = Path(base_path)
         base_path.mkdir(parents=True, exist_ok=True)
         return base_path
-    
+
     def _get_or_create_dir(self, dirname: str, with_subdir: str | None = None) -> Path:
-        """
-        Creates a subdirectory of the project's base directory
-        """
+        """Creates a subdirectory of the project's base directory."""
         base = self.get_base_dir()
         dir = base / dirname
         if with_subdir:
             dir = dir / with_subdir
         dir.mkdir(parents=True, exist_ok=True)
-        return dir 
+        return dir
 
     def get_log_dir(self) -> Path:
         return self._get_or_create_dir("logs")
@@ -38,7 +36,6 @@ class Settings:
     def get_downloads_dir(self, project_name: str | None = None) -> Path:
         dir = self._get_or_create_dir("downloads", with_subdir=project_name)
         return dir
-    
 
     def get_frames_dir(self) -> Path:
         dir = self._get_or_create_dir("frames")

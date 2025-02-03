@@ -38,6 +38,7 @@
         "pyyaml",
         "ruamel",
         "seaborn",
+        "searchsorted",
         "starmap",
         "strsim",
         "thefastestai",

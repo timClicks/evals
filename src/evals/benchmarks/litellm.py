@@ -21,7 +21,7 @@ from ._benchmark import _Benchmark
 
 # The relative weight to give to input tokens for overall scored price.
 # TODO: Needs to be determined based on real data
-INPUT_WEIGHT = Decimal.from_float(0.75)
+INPUT_WEIGHT = Decimal(0.75)
 DATA_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/"
     "model_prices_and_context_window.json"
@@ -123,9 +123,9 @@ async def async_download():
 def download():
     asyncio.run(async_download())
 
+
 def assemble_frame(extract_model_names=True) -> pl.DataFrame:
-    """
-    Extract input and output costs and derive a score for each model.
+    """Extract input and output costs and derive a score for each model.
 
     When extract_model_names is True, also ensure that all model names are present in "data/working/model-names.json" and the corresponding csv file.
     """
@@ -156,7 +156,6 @@ def assemble():
 
 def extract_model_names():
     import json
-    import pandas as pd
 
     file_path = get_file_path()
     model_names_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
@@ -171,9 +170,9 @@ def extract_model_names():
         validated = LLMCaps.maybe_create(model_id_with_provider, details)
         if validated is not None:
             model_ids.append(model_id_with_provider)
-    
+
     try:
-        with open(model_names_path, "r") as fd:
+        with open(model_names_path) as fd:
             all_model_names = json.load(fd)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         all_model_names = dict()
@@ -188,6 +187,7 @@ def extract_model_names():
     # TODO: fix race condition- leaving in for now because we process in serial
     with model_names_path.open("w", newline="") as fd:
         json.dump(all_model_names, fd, indent=2, sort_keys=True)
+
 
 def all():
     download()

@@ -2,12 +2,12 @@
 
 import asyncio
 import json
-import pandas as pd
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any, Final
 
 import httpx
+import pandas as pd
 import polars as pl
 from loguru import logger
 from pydantic import BaseModel, Field, ValidationError
@@ -194,7 +194,7 @@ def extract_model_names():
     df = pd.read_parquet(data_path)
 
     try:
-        with open(model_names_path, "r") as fd:
+        with open(model_names_path) as fd:
             all_model_names = json.load(fd)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         all_model_names = dict()
@@ -209,7 +209,6 @@ def extract_model_names():
     # TODO: fix race condition- leaving in for now because we process in serial
     with model_names_path.open("w", newline="") as fd:
         json.dump(all_model_names, fd, indent=2, sort_keys=True)
-
 
 
 def assemble():

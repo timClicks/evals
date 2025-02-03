@@ -20,8 +20,6 @@ import asyncio
 import pickle
 from datetime import datetime, timedelta
 from pathlib import Path
-from multiprocessing import get_context
-from typing import List
 
 import httpx
 import pandas as pd
@@ -163,7 +161,7 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
     logger.debug("processing", file_name)
     with file_name.open("rb") as file:
         data = pickle.load(file)
-    
+
     logger.info(f"Extracting data from {file_name.name}")
     date = pd.to_datetime(file_name.name[-12:-4], format="%Y%m%d")
 
@@ -219,13 +217,14 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
 def download():
     asyncio.run(async_download())
 
+
 def extract():
     settings = get_settings()
     downloads_dir = settings.get_downloads_dir("lmsys")
     working_dir = settings.get_working_dir("lmsys")
 
     paths = sorted(downloads_dir.glob("elo_results_*.pkl"))
-    
+
     for path in paths:
         fname = path.with_suffix('.parquet').name
         save_path = working_dir / fname
@@ -238,6 +237,7 @@ def extract():
             if df is not None:
                 df.to_parquet(save_path)
 
+
 def assemble_frame() -> pl.DataFrame:
     """Iterate over all pickle files and get extracts."""
     settings = get_settings()
@@ -246,7 +246,7 @@ def assemble_frame() -> pl.DataFrame:
     paths = sorted(working_dir.glob("elo_results_*.parquet"))
     scans = (pl.read_parquet(p) for p in paths)
     df = pl.concat(scans)
-    
+
     return df
 
 
@@ -257,6 +257,7 @@ def assemble():
     df.write_parquet(save_path)
     logger.info(f"lmsys data saved to {save_path}")
 
+
 def extract_model_names():
     import json
     data_path = get_settings().get_frames_dir() / "lmsys.parquet"
@@ -264,7 +265,7 @@ def extract_model_names():
     df = pd.read_parquet(data_path)
 
     try:
-        with open(model_names_path, "r") as fd:
+        with open(model_names_path) as fd:
             all_model_names = json.load(fd)
     except (FileNotFoundError, json.decoder.JSONDecodeError):
         all_model_names = dict()

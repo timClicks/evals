@@ -56,11 +56,11 @@ class ModelMapper(BaseModel):
         model_mapping_path = get_settings().get_base_dir() / ".." / "tables" / "model-id-mapping.json"
 
         try:
-            with open(model_mapping_path, "r") as fd:
+            with open(model_mapping_path) as fd:
                 all_model_names = json.load(fd)
         except (FileNotFoundError, json.decoder.JSONDecodeError):
             all_model_names = dict()
-        
+
         for model_id_with_source, stencila_model_id in all_model_names.items():
             if stencila_model_id is None:
                 continue
