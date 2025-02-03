@@ -214,9 +214,9 @@ def generate_scores() -> ScoreRecordList:
             missing = [field for (field, is_present) in zip(fields, present) if not is_present]
 
             match len(missing):
-                case 1: logger.warning(f"Skipping {model}, missing: {missing[0]}.")
-                case 2: logger.warning(f"Skipping {model}, missing: {missing[0]} and {missing[1]}.")
-                case _: logger.warning(f"Skipping {model}, missing: {(', ').join(missing[0:-1])} and {missing[-1]}.")
+                case 1: logger.info(f"Skipping {model}, missing: {missing[0]}.")
+                case 2: logger.info(f"Skipping {model}, missing: {missing[0]} and {missing[1]}.")
+                case _: logger.info(f"Skipping {model}, missing: {(', ').join(missing[0:-1])} and {missing[-1]}.")
             
             continue
 
