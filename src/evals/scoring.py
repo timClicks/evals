@@ -119,14 +119,14 @@ def rank_by_category(df: pl.DataFrame) -> pl.DataFrame:
     speed_ranked = (
         pl.col("speed")
         .rank(method="min", descending=True)
-        .over("category")
+        # .over("category") # TODO: speed context
         .alias("speed_rank")
     )
 
     cost_ranked = (
         pl.col("cost")
-        .rank(method="min", descending=True)
-        .over("category")
+        .rank(method="min", descending=False)
+        # .over("category") # TODO: cost context
         .alias("cost_rank")
     )
     df = df.with_columns([quality_ranked, speed_ranked, cost_ranked])
@@ -147,7 +147,6 @@ def calculate_percentiles(scores: List[float], invert_scores = False) -> np.ndar
     percentiles = percentiles * 100.0
     return percentiles
 
-
 def generate_scores() -> ScoreRecordList:
     mm = ModelMapper.load()
     results = [bm.get_benchmarks(mm) for bm in all_benchmarks().values()]
@@ -155,7 +154,6 @@ def generate_scores() -> ScoreRecordList:
     c_unit, cost_scores = get_scores_like(results, BenchmarkType.COST)
     s_unit, speed_scores = get_scores_like(results, BenchmarkType.SPEED)
 
-    metrics = ["quality", "cost", "speed"]
     contexts = set()
     data_by_model = defaultdict(dict)
 
@@ -171,21 +169,22 @@ def generate_scores() -> ScoreRecordList:
         # TODO: speed context, e.g. hosting provider
         data_by_model[score.model]["speed"] = score.score
 
+    metrics = [f"quality_{context}" for context in contexts] + ["speed", "cost"]
     for metric in metrics:
+        invert_scores = metric == "cost"
+        model_names = []
+        scores = []
+
         for model_name, data in data_by_model.items():
-            model_names = []
-            scores = []
             score = data.get(metric)
             if score is None:
                 continue
             scores.append(score)
             model_names.append(model_name)
 
-            invert_scores = metric == "cost"
-            percentiles = calculate_percentiles(scores, invert_scores)
-
-            for (model, pct) in zip(model_names, percentiles, strict=True):
-                data_by_model[model][f"{metric}_pct"] = pct
+        percentiles = calculate_percentiles(scores, invert_scores)
+        for (model, pct) in zip(model_names, percentiles, strict=True):
+            data_by_model[model][f"{metric}_pct"] = pct
 
     score_records = []
     for model, data in data_by_model.items():
@@ -209,7 +208,6 @@ def generate_scores() -> ScoreRecordList:
                     case 2: part_2 = f"s: {missing[0]} and {missing[1]}."
                     case _: part_2 = f"s: {(', ').join(missing[0:-1])} and {missing[-1]}."  # impossible?
                 logger.info(part_1 + part_2)
-                continue
 
             score_records.append(
                 ScoreRecord(
@@ -219,10 +217,10 @@ def generate_scores() -> ScoreRecordList:
                     quality_pct=data.get("quality_{context}_pct"),
                     cost=cost,
                     cost_unit=c_unit,
-                    cost_pct=data.get("cost_{context}_pct"),
+                    cost_pct=data.get("cost_pct"),
                     speed=speed,
                     speed_unit=s_unit,
-                    speed_pct=data.get("speed_{context}_pct"),
+                    speed_pct=data.get("speed_pct"),
                     model=model,
                 )
             )
@@ -239,9 +237,9 @@ def today():
 # disk-related
 
 
-def symlink(original: Path):
+def symlink(original: Path, prefix="scoring"):
     parent_dir = original.parent
-    symlink_path = parent_dir / f"scoring{original.suffix}"
+    symlink_path = parent_dir / f"{prefix}{original.suffix}"
 
     if symlink_path.exists() or symlink_path.is_symlink():
         symlink_path.unlink()
@@ -259,14 +257,25 @@ def main():
     df = rank_by_category(df)
     df = calculate_geometric_means(df, ["quality_rank", "cost_rank", "speed_rank"])
 
+    df.write_csv(home / f"scoring-with-incomplete-{today()}.csv")
+    df.write_json(home / f"scoring-with-incomplete-{today()}.json")
+    df.write_parquet(home / f"scoring-with-incomplete-{today()}.parquet")
+
+    # update "scoring.(csv|json|parquet)" to always point to the most recent version
+    symlink(home / f"scoring-with-incomplete-{today()}.csv", prefix="scoring-with-incomplete")
+    symlink(home / f"scoring-with-incomplete-{today()}.json", prefix="scoring-with-incomplete")
+    symlink(home / f"scoring-with-incomplete-{today()}.parquet", prefix="scoring-with-incomplete")
+
+    df = df.drop_nulls(subset=pl.selectors.by_name("quality", "speed", "cost"))
+
     df.write_csv(home / f"scoring-{today()}.csv")
     df.write_json(home / f"scoring-{today()}.json")
     df.write_parquet(home / f"scoring-{today()}.parquet")
 
     # update "scoring.(csv|json|parquet)" to always point to the most recent version
-    symlink(home / f"scoring-{today()}.csv")
-    symlink(home / f"scoring-{today()}.json")
-    symlink(home / f"scoring-{today()}.parquet")
+    symlink(home / f"scoring-{today()}.csv", prefix="scoring")
+    symlink(home / f"scoring-{today()}.json", prefix="scoring")
+    symlink(home / f"scoring-{today()}.parquet", prefix="scoring")
 
     print(df)
 
