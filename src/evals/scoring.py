@@ -214,7 +214,7 @@ def generate_scores() -> ScoreRecordList:
                     category=context,
                     quality=quality,
                     quality_unit=q_unit,
-                    quality_pct=data.get("quality_{context}_pct"),
+                    quality_pct=data.get(f"quality_{context}_pct"),
                     cost=cost,
                     cost_unit=c_unit,
                     cost_pct=data.get("cost_pct"),
