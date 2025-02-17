@@ -158,7 +158,12 @@ def generate_scores() -> ScoreRecordList:
     data_by_model = defaultdict(dict)
 
     for score in quality_scores:
-        contexts.add(score.context)
+        # https://github.com/lm-sys/FastChat/blob/03d376ccb5048bcbaa49b24064a3534514a42faf/fastchat/serve/monitor/monitor_md.py#L55
+        if score.context == "full":
+            score.context = "overall"
+        # else:
+        #     # TODO: skip these at a different place
+        #     continue
         data_by_model[score.model][f"quality_{score.context}"] = score.score
 
     for score in cost_scores:
