@@ -195,8 +195,8 @@ def build_extract(file_name: Path) -> pd.DataFrame | None:
 
     # Attempt to retrieve data using the defined key paths
     full = get_leaderboard_table_df(data, full_key_paths)
-    coding = get_leaderboard_table_df(data, coding_key_paths)
-    vision = get_leaderboard_table_df(data, vision_key_paths)
+    coding = None # get_leaderboard_table_df(data, coding_key_paths) # note: just using overall scores for now
+    vision = None # get_leaderboard_table_df(data, vision_key_paths) # note: just using overall scores for now
 
     if full is None:
         if "leaderboard_table" in data:
